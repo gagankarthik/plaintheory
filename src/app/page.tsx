@@ -147,11 +147,12 @@ export default function Home() {
               </p>
             </div>
             <div className="md:col-span-2 space-y-4">
-              <div className="relative h-48 md:h-72 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center border-2 md:border-4 border-black">
+              <div className="relative h-48 md:h-72 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center border-2 md:border-4 border-black overflow-hidden">
                 <Image
                   src="https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?q=80&w=1296&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                   alt="AI Technology Visualization"
-                  layout="fill"
+                  fill
+                  className="object-cover"
                 />
               </div>
 
@@ -205,11 +206,12 @@ export default function Home() {
 
           {/* Article 2 - Machine Learning Deep Dive */}
           <article className="border-b-2 border-gray-400 pb-6 md:pb-8">
-            <div className="relative h-48 md:h-64 flex items-center justify-center mb-4 md:mb-6 border-2 md:border-4 border-black">
+            <div className="relative h-48 md:h-64 flex items-center justify-center mb-4 md:mb-6 border-2 md:border-4 border-black overflow-hidden">
               <Image
                 src="https://images.unsplash.com/photo-1674027444636-ce7379d51252?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1yZWxhdGVkfDV8fHxlbnwwfHx8fHw%3D"
                 alt="Machine Learning Visualization"
-                layout="fill"
+                fill
+                className="object-cover"
               />
             </div>
             
@@ -235,11 +237,12 @@ export default function Home() {
 
           {/* Article 3 - Ethics */}
           <article className="border-b-2 border-gray-400 pb-6 md:pb-8">
-            <div className="relative h-48 md:h-64 bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 flex items-center justify-center mb-4 md:mb-6 border-2 md:border-4 border-black">
+            <div className="relative h-48 md:h-64 bg-gradient-to-br from-orange-400 via-red-500 to-pink-600 flex items-center justify-center mb-4 md:mb-6 border-2 md:border-4 border-black overflow-hidden">
               <Image
                 src="https://images.unsplash.com/photo-1640158615573-cd28feb1bf4e?w=400&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8ZGF0YSUyMGdvdmVybmFuY2V8ZW58MHx8MHx8fDA%3D"
                 alt="Ethics Visualization"
-                layout="fill"
+                fill
+                className="object-cover"
               />
             </div>
             <div className="mb-3">
