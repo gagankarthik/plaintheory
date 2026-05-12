@@ -1,0 +1,14 @@
+.next/
+.open-next/
+.sst/
+.claude/
+infra/.sst/
+sst-env.d.ts
+node_modules/
+out/
+build/
+coverage/
+package-lock.json
+*.tsbuildinfo
+next-env.d.ts
+public/

@@ -32,9 +32,22 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
+
+# sst / open-next
+.sst/
+.open-next/
+infra/.sst/
+sst-env.d.ts
+
+# editor
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 
 # typescript
 *.tsbuildinfo

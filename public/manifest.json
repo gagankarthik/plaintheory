@@ -1,0 +1,11 @@
+{
+  "name": "PlainTheory",
+  "short_name": "PlainTheory",
+  "description": "A calm companion for the life you're building.",
+  "start_url": "/app/plan",
+  "display": "standalone",
+  "background_color": "#f9f6ef",
+  "theme_color": "#f9f6ef",
+  "orientation": "portrait",
+  "icons": []
+}

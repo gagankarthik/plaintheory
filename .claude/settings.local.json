@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "Bash(npx sst *)",
+      "Read(//c/Users/gagan/**)",
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(32\\).toString\\('base64'\\)\\)\")",
+      "Bash(sed -i.bak -e 's|^COGNITO_USER_POOL_ID=.*|COGNITO_USER_POOL_ID=\"us-east-2_0byXTCUhP\"|' -e 's|^COGNITO_USER_POOL_CLIENT_ID=.*|COGNITO_USER_POOL_CLIENT_ID=\"7q6cap68f2ghvl6t2oftuhsre5\"|' -e 's|^COGNITO_OAUTH_DOMAIN=.*|COGNITO_OAUTH_DOMAIN=\"plaintheory-dev\"|' -e 's|^DYNAMODB_TABLE_NAME=.*|DYNAMODB_TABLE_NAME=\"plaintheory-dev-TableTable-bbehbanw\"|' -e 's|^S3_BUCKET_NAME=.*|S3_BUCKET_NAME=\"plaintheory-dev-usercontentbucket-ztneamen\"|' -e 's|^KMS_KEY_ID=.*|KMS_KEY_ID=\"arn:aws:kms:us-east-2:417915984158:key/586db103-adfa-4b3d-bb5d-46d3bec11019\"|' -e 's|^SESSION_COOKIE_SECRET=.*|SESSION_COOKIE_SECRET=\"__TRACKED_VAR__\"|' .env.local)",
+      "Bash(rm .env.local.bak)",
+      "Bash(sed -i.bak -e s/^COGNITO_USER_POOL_ID=/NEXT_PUBLIC_COGNITO_USER_POOL_ID=/ -e s/^COGNITO_USER_POOL_CLIENT_ID=/NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=/ -e s/^COGNITO_OAUTH_DOMAIN=/NEXT_PUBLIC_COGNITO_OAUTH_DOMAIN=/ -e /^COGNITO_USER_POOL_CLIENT_SECRET=/d .env.local .env.example)",
+      "Bash(rm .env.local.bak .env.example.bak)"
+    ]
+  }
+}

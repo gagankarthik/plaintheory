@@ -55,6 +55,7 @@ Sentry for error monitoring, PostHog for product analytics (privacy-aware)
 Stripe for billing (subscriptions, not events) — webhook handling robust
 
 Core Features (build in this order)
+
 1. Auth & Onboarding
 
 Custom-branded sign-up / sign-in / forgot-password flows backed by Cognito
@@ -67,7 +68,6 @@ Daily routine basics (wake/sleep time, work schedule)
 Goals (multi-select: better sleep, fewer symptoms, stable energy, weight management, mood, fitness)
 Notification preferences
 Mandatory disclaimer acceptance — user must check a box: "I understand PlainTheory does not provide medical advice and does not replace consultation with a qualified healthcare professional."
-
 
 Save state at every step so users can resume
 Smooth animated transitions between steps
@@ -87,8 +87,7 @@ Recommended daily habits
 Foods/activities generally helpful or harmful
 Sources cited (Mayo Clinic, NIH, peer-reviewed where possible)
 
-The AI must only generate guidance grounded in these knowledge files for the user's selected conditions. Do not let the model freestyle medical content.
-3. Daily Plan Generation
+The AI must only generate guidance grounded in these knowledge files for the user's selected conditions. Do not let the model freestyle medical content. 3. Daily Plan Generation
 
 Generated automatically each morning at the user's wake time (cron job via Lambda + EventBridge)
 Structure (returned as structured JSON, then rendered):
@@ -97,7 +96,6 @@ Morning briefing (60–90 word warm summary)
 3–5 focus actions for today (food, movement, hydration, medication reminder, stress regulation)
 1 thing to watch for (pattern-based, e.g., "afternoon energy crash likely")
 Evening reflection prompt (3 short questions)
-
 
 All actions tied back to user's conditions and yesterday's check-in data
 Streaming UI: text fades in as it's generated, like Claude.ai's interface
@@ -111,7 +109,6 @@ Hard guardrails (implemented as a pre-flight classifier using gpt-4o-mini):
 Any message containing emergency indicators ("chest pain," "can't breathe," "thoughts of self-harm," "suicide," "overdose") → IMMEDIATELY display crisis resources (988, local emergency services) and refuse to continue normal chat
 Any message asking for prescription changes, dosage advice, diagnosis → respond with "I can't help with that — please contact your doctor or pharmacist. I can help you prepare questions for them."
 Any message about symptoms outside the user's logged conditions → gentle redirect + suggestion to discuss with their doctor
-
 
 All chat is logged with timestamp, user ID (hashed for analytics), and full transcript stored encrypted in DynamoDB
 Streaming responses
@@ -212,7 +209,6 @@ Detects and removes diagnostic language ("you have X")
 Detects and removes specific medication suggestions
 If any of these appear, replaces with "Please discuss with your doctor or pharmacist."
 
-
 Emergency keyword classifier (gpt-4o-mini): pre-flight check on every user message. Triggers crisis-resource modal for self-harm/emergency indicators.
 Logging: every AI generation logs the full prompt, model, response, and any guardrails triggered for later audit
 Age gate: 18+ only on signup. Pregnancy is excluded from the condition library in v1 (defer until you have OB/GYN advisor).
@@ -222,18 +218,18 @@ Region-aware crisis resources: US shows 988, UK shows Samaritans, India shows iC
 Repository Structure
 plaintheory/
 ├── apps/
-│   └── web/                 # Next.js app
+│ └── web/ # Next.js app
 ├── packages/
-│   ├── ui/                  # Shared component library
-│   ├── ai/                  # OpenAI abstraction + prompts + guardrails
-│   ├── db/                  # DynamoDB schemas + repositories
-│   └── shared/              # Types, constants, utilities
-├── infra/                   # SST or CDK infrastructure code
+│ ├── ui/ # Shared component library
+│ ├── ai/ # OpenAI abstraction + prompts + guardrails
+│ ├── db/ # DynamoDB schemas + repositories
+│ └── shared/ # Types, constants, utilities
+├── infra/ # SST or CDK infrastructure code
 ├── docs/
-│   ├── data-model.md
-│   ├── ai-safety.md
-│   ├── deployment.md
-│   └── condition-library.md
+│ ├── data-model.md
+│ ├── ai-safety.md
+│ ├── deployment.md
+│ └── condition-library.md
 └── README.md
 What I want you to do, step by step
 
@@ -264,6 +260,5 @@ Apple Health / Google Fit sync
 Provider portal (where actual clinicians review user data)
 Wearable integrations
 Multi-language
-
 
 Begin by confirming what you understand, flagging concerns, and proposing a build plan with timeline estimates per phase. Do not write code until I approve the plan.
