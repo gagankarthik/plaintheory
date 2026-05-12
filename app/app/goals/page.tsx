@@ -11,6 +11,7 @@ export default async function GoalsPage() {
   const session = await getCurrentUser();
   if (!session) return null;
   const user = await getUser(session.userId);
+  if (!user) return null;
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
@@ -24,7 +25,7 @@ export default async function GoalsPage() {
         </p>
       </header>
 
-      {user ? <GoalsEditor initial={user.onboarding} /> : null}
+      <GoalsEditor initial={user.onboarding} />
     </div>
   );
 }

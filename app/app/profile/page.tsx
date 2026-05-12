@@ -14,9 +14,10 @@ export default async function ProfilePage() {
   const session = await getCurrentUser();
   if (!session) return null;
   const user = await getUser(session.userId);
-  const email = user?.email ?? session.email;
+  if (!user) return null;
+  const email = user.email;
   const activityLabel = ACTIVITY_LEVELS.find(
-    (a) => a.id === user?.onboarding.body?.activityLevel,
+    (a) => a.id === user.onboarding.body?.activityLevel,
   )?.label;
 
   return (
@@ -30,37 +31,33 @@ export default async function ProfilePage() {
         </div>
       </header>
 
-      {user ? (
-        <>
-          <Card className="border-border/60">
-            <CardHeader className="px-6 pt-6 pb-2">
-              <CardTitle className="text-lg">Snapshot</CardTitle>
-              <CardDescription>What the coach knows about you.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3 px-6 pb-6 sm:grid-cols-2">
-              <Stat
-                label="Height"
-                value={user.onboarding.body?.heightCm ? `${user.onboarding.body.heightCm} cm` : "—"}
-              />
-              <Stat
-                label="Weight"
-                value={user.onboarding.body?.weightKg ? `${user.onboarding.body.weightKg} kg` : "—"}
-              />
-              <Stat label="Activity" value={activityLabel ?? "—"} />
-              <Stat
-                label="Hydration target"
-                value={
-                  user.onboarding.body?.hydrationTargetGlasses
-                    ? `${user.onboarding.body.hydrationTargetGlasses} glasses`
-                    : "8 glasses (default)"
-                }
-              />
-            </CardContent>
-          </Card>
+      <Card className="border-border/60">
+        <CardHeader className="px-6 pt-6 pb-2">
+          <CardTitle className="text-lg">Snapshot</CardTitle>
+          <CardDescription>What the coach knows about you.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 px-6 pb-6 sm:grid-cols-2">
+          <Stat
+            label="Height"
+            value={user.onboarding.body?.heightCm ? `${user.onboarding.body.heightCm} cm` : "—"}
+          />
+          <Stat
+            label="Weight"
+            value={user.onboarding.body?.weightKg ? `${user.onboarding.body.weightKg} kg` : "—"}
+          />
+          <Stat label="Activity" value={activityLabel ?? "—"} />
+          <Stat
+            label="Hydration target"
+            value={
+              user.onboarding.body?.hydrationTargetGlasses
+                ? `${user.onboarding.body.hydrationTargetGlasses} glasses`
+                : "8 glasses (default)"
+            }
+          />
+        </CardContent>
+      </Card>
 
-          <ProfileEditor initial={user.onboarding} />
-        </>
-      ) : null}
+      <ProfileEditor initial={user.onboarding} />
     </div>
   );
 }

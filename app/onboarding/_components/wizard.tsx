@@ -18,6 +18,7 @@ import {
 
 import { Progress } from "./progress";
 import { AboutYouStep } from "./steps/about-you";
+import { BodyStep } from "./steps/body";
 import { ConditionsStep } from "./steps/conditions";
 import { DisclaimerStep } from "./steps/disclaimer";
 import { GoalsStep } from "./steps/goals";
@@ -122,6 +123,8 @@ function StepRenderer({
   switch (step) {
     case "about-you":
       return <AboutYouStep initialData={state} onSubmit={onSubmit} />;
+    case "body":
+      return <BodyStep initialData={state} onSubmit={onSubmit} />;
     case "conditions":
       return <ConditionsStep initialData={state} onSubmit={onSubmit} />;
     case "medications":

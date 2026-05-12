@@ -51,7 +51,9 @@ export default function PrivacyPage() {
               <strong>Stripe</strong> (US) — payment processing if you upgrade.
             </li>
             <li>
-              <strong>Vercel</strong> (US) — hosts the web app.
+              <strong>Vercel</strong> (US) — hosts the web app, and provides{" "}
+              <em>Vercel Analytics</em> — anonymous, cookieless page-view counts. No
+              cross-site tracking, no PII.
             </li>
           </ul>
         </section>

@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
@@ -8,7 +9,7 @@ import { AmplifyProvider } from "@/lib/auth/amplify-provider";
 import { fontSans, fontSerif } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
-const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://plaintheory.com";
+const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theplaintheory.in";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -70,21 +71,64 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "PlainTheory",
-    applicationCategory: "LifestyleApplication",
-    operatingSystem: "Web",
-    description:
-      "A daily-life coaching companion: morning plans, a coach that knows you, and a quiet weekly review.",
-    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: "4.9",
-      ratingCount: "1",
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "PlainTheory",
+      applicationCategory: "LifestyleApplication",
+      operatingSystem: "Web",
+      description:
+        "A daily-life coaching companion: morning plans, a coach that knows you, and a quiet weekly review.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     },
-  };
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: "PlainTheory",
+      url: SITE_URL,
+      logo: `${SITE_URL}/icon.svg`,
+      sameAs: [],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Is this therapy or medical advice?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. PlainTheory is general life coaching — daily routines, food, focus, sleep, mood patterns. For anything clinical, talk to a qualified professional.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Can I use PlainTheory for free?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Free covers a daily plan, eight check-in types, water and weight tracking, and five chat messages a day. Plus and Premium unlock more.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Does the AI remember me between sessions?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Your focus areas, goals, body metrics, routine, and dietary notes shape every plan and chat reply. Update them in Settings anytime.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Where does my data live?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Encrypted in DynamoDB in us-east-2 with customer-managed KMS keys. Export to JSON or delete your account anytime from Settings.",
+          },
+        },
+      ],
+    },
+  ];
 
   return (
     <html
@@ -109,6 +153,7 @@ export default function RootLayout({
             <CookieConsent />
           </AmplifyProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );

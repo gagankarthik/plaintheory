@@ -16,6 +16,7 @@ export type BodyMetrics = {
 
 export const STEP_ORDER = [
   "about-you",
+  "body",
   "conditions",
   "medications",
   "routine",
@@ -30,6 +31,11 @@ export const STEP_META: Record<StepId, { title: string; description: string }> =
   "about-you": {
     title: "A little about you",
     description: "Where you are and your year of birth. PlainTheory is 18+ only.",
+  },
+  body: {
+    title: "Your body, briefly",
+    description:
+      "Optional — helps the coach scale portions, exercise volumes, and hydration. Skip anytime.",
   },
   conditions: {
     title: "Areas you'd like to grow in",
