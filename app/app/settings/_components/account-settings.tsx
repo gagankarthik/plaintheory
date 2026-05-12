@@ -66,30 +66,29 @@ export function AccountSettings({ email, memberSince, plan, onboarding }: Props)
 
       {/* Editable: Region */}
       <div className="space-y-1.5">
-        <label className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
+        <label htmlFor="region" className="text-xs uppercase tracking-[0.15em] text-muted-foreground">
           Region
         </label>
-        <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 lg:grid-cols-5">
+        <select
+          id="region"
+          value={region}
+          disabled={pending}
+          onChange={(e) => saveRegion(e.target.value as RegionId)}
+          className={cn(
+            "h-10 w-full max-w-xs rounded-xl border border-border/60 bg-card px-3 text-sm text-foreground",
+            "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1",
+            "disabled:opacity-50 disabled:cursor-not-allowed",
+            "appearance-none",
+            !region && "text-muted-foreground",
+          )}
+          style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")", backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}
+        >
+          <option value="" disabled>Select your region…</option>
           {REGIONS.map((r) => (
-            <button
-              key={r.value}
-              type="button"
-              onClick={() => saveRegion(r.value)}
-              disabled={pending}
-              className={cn(
-                "rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors",
-                region === r.value
-                  ? "border-primary/40 bg-primary/5 text-primary"
-                  : "border-border/60 text-foreground hover:bg-accent/40",
-              )}
-            >
-              {r.label}
-            </button>
+            <option key={r.value} value={r.value}>{r.label}</option>
           ))}
-        </div>
-        {!region && (
-          <p className="text-xs text-muted-foreground">Select your region for local crisis resources.</p>
-        )}
+        </select>
+        <p className="text-xs text-muted-foreground">Used for local crisis resources if ever needed.</p>
       </div>
 
       {/* Editable: Birth year */}
