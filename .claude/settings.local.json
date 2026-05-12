@@ -14,7 +14,12 @@
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\\\\app\\\\app\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName } | Sort-Object)",
       "Bash(npx tsc *)",
       "Bash(npx shadcn *)",
-      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")"
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\" -Directory)",
+      "Bash(Select-Object Name)",
+      "PowerShell(ls -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
+      "PowerShell(ls -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\\\\app\\\\app\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
+      "Bash(xargs grep -l \"stripe\\\\|billing\\\\|subscription\\\\|pricing\\\\|STRIPE\\\\|PRICE\")"
     ]
   }
 }

@@ -14,21 +14,19 @@ export type SendResult =
   | { kind: "crisis" }
   | { kind: "rate-limited"; limit: number };
 
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export async function sendChatMessage(
   userId: string,
   content: string,
-  options: { threadId?: string; mode?: ChatMode } = {},
+  options: { threadId?: string; mode?: ChatMode; date?: string } = {},
 ): Promise<SendResult> {
   if (looksEmergency(content)) {
     return { kind: "crisis" };
   }
 
+  const date = options.date ?? new Date().toISOString().slice(0, 10);
+
   try {
-    await incrementDailyUsage(userId, todayKey(), FREE_TIER_DAILY_LIMIT);
+    await incrementDailyUsage(userId, date, FREE_TIER_DAILY_LIMIT);
   } catch (err) {
     if (err instanceof UsageLimitExceededError) {
       return { kind: "rate-limited", limit: err.limit };

@@ -10,20 +10,33 @@ import { AccountSettings } from "./_components/account-settings";
 import { DeleteAccountButton } from "./_components/delete-account-button";
 import { ManageBillingButton } from "./_components/manage-billing-button";
 import { NotificationsSettings } from "./_components/notifications-settings";
+import { SyncOnSuccess } from "./_components/sync-on-success";
 
 export const dynamic = "force-dynamic";
 
 export const metadata = { title: "Settings" };
 
-export default async function SettingsPage() {
+export default async function SettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string>>;
+}) {
+  const params = await searchParams;
   const session = await getCurrentUser();
   if (!session) return null;
   const user = await getUser(session.userId);
   const email = user?.email ?? session.email;
   const createdAt = user?.createdAt ? new Date(user.createdAt) : null;
+  const planLabel =
+    user?.subscriptionPlan === "plusMonthly"
+      ? "Plus · Monthly"
+      : user?.subscriptionPlan === "plusYearly"
+        ? "Plus · Yearly"
+        : "Free";
 
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+      <SyncOnSuccess status={params.checkout ?? ""} />
       <header className="flex items-center gap-4">
         <Avatar seed={email} size={56} className="size-14" />
         <div className="space-y-1">
@@ -54,7 +67,7 @@ export default async function SettingsPage() {
                   })
                 : "—"
             }
-            plan={user?.stripeCustomerId ? "Plus" : "Free"}
+            plan={planLabel}
             onboarding={user?.onboarding ?? { step: "complete" }}
           />
         </CardContent>
@@ -76,13 +89,13 @@ export default async function SettingsPage() {
         <CardHeader className="px-6 pt-6 pb-2">
           <CardTitle className="text-lg">Billing</CardTitle>
           <CardDescription>
-            {user?.stripeCustomerId
-              ? "Manage your subscription, update card, or cancel."
-              : "You're on the free plan."}
+            {user?.subscriptionPlan
+              ? `You're on ${planLabel}. Manage your subscription, update card, or cancel.`
+              : "You're on the free plan. Upgrade to unlock everything."}
           </CardDescription>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          {user?.stripeCustomerId ? (
+          {user?.subscriptionPlan ? (
             <ManageBillingButton />
           ) : (
             <Link href="/pricing">

@@ -41,11 +41,11 @@ export function ActivityRings({ hydration, checkIns, planActions, className }: P
     planTotal: planActions.target,
   });
 
-  // Self-correct: fetch today's actual values using the client's local date.
-  // This fixes cases where SSR rendered with a stale UTC or wrong-day date.
+  // Self-correct: fetch today's actual values using the client's local date + timezone.
   useEffect(() => {
     const today = localDate();
-    fetch(`/api/today/summary?date=${today}`)
+    const tz = new Date().getTimezoneOffset();
+    fetch(`/api/today/summary?date=${today}&tz=${tz}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data: Summary) => {
         setValues({

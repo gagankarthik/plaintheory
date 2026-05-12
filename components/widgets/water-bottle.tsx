@@ -21,11 +21,11 @@ export function WaterBottle({ initialGlasses, target, className }: Props) {
   const safeTarget = Math.max(1, target);
   const pct = Math.min(100, Math.round((glasses / safeTarget) * 100));
 
-  // Self-correct: if SSR rendered a stale date, the initialGlasses could be
-  // from yesterday. Fetch the true today's count after mount.
+  // Self-correct: if SSR rendered with a stale date, fetch the true today's count.
   useEffect(() => {
     const today = localDate();
-    fetch(`/api/water?date=${today}`)
+    const tz = new Date().getTimezoneOffset();
+    fetch(`/api/water?date=${today}&tz=${tz}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((data: { count: number }) => {
         if (typeof data.count === "number") setGlasses(data.count);

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { sendChatMessage } from "@/lib/ai/chat";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getLocalDate } from "@/lib/date";
 
 export const runtime = "nodejs";
 
@@ -36,9 +37,11 @@ export async function POST(request: Request) {
   }
 
   try {
+    const localDate = await getLocalDate();
     const result = await sendChatMessage(session.userId, content, {
       ...(threadId ? { threadId } : {}),
       ...(mode ? { mode } : {}),
+      date: localDate,
     });
     if (result.kind === "crisis") {
       return NextResponse.json({ kind: "crisis" });

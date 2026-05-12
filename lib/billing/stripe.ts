@@ -17,3 +17,11 @@ export const PRICE_IDS = {
 } as const;
 
 export type TierKey = keyof typeof PRICE_IDS;
+
+/** Maps a Stripe price ID back to our internal plan key. */
+export function planFromPriceId(priceId: string): "plusMonthly" | "plusYearly" | undefined {
+  const entry = Object.entries(PRICE_IDS).find(([, id]) => id === priceId);
+  const key = entry?.[0];
+  if (key === "plusMonthly" || key === "plusYearly") return key;
+  return undefined;
+}

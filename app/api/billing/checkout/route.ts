@@ -16,6 +16,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "invalid json" }, { status: 400 });
   }
+
   if (
     !body ||
     typeof body !== "object" ||
@@ -24,32 +25,50 @@ export async function POST(request: Request) {
   ) {
     return NextResponse.json({ error: "missing tier" }, { status: 400 });
   }
+
   const tier = (body as { tier: TierKey }).tier;
   const priceId = PRICE_IDS[tier];
-  if (!priceId) return NextResponse.json({ error: "unknown tier" }, { status: 400 });
-
-  const user = await getUser(session.userId);
-  if (!user) return NextResponse.json({ error: "no user" }, { status: 404 });
-
-  let customerId = user.stripeCustomerId;
-  if (!customerId) {
-    const customer = await stripe().customers.create({
-      email: user.email,
-      metadata: { userId: user.userId },
-    });
-    customerId = customer.id;
-    await setStripeCustomerId(user.userId, customerId);
+  if (!priceId) {
+    return NextResponse.json(
+      { error: `No price configured for tier "${tier}". Add the price_ ID (not prod_ ID) to your environment.` },
+      { status: 400 },
+    );
+  }
+  if (!priceId.startsWith("price_")) {
+    return NextResponse.json(
+      { error: `Invalid price ID "${priceId}" — Stripe price IDs start with "price_", not "prod_". Open the product in Stripe Dashboard, find the Pricing section, and copy the price_ ID.` },
+      { status: 400 },
+    );
   }
 
-  const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-  const checkout = await stripe().checkout.sessions.create({
-    mode: "subscription",
-    customer: customerId,
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${origin}/app/plan?checkout=success`,
-    cancel_url: `${origin}/app/settings?checkout=cancel`,
-    allow_promotion_codes: true,
-  });
+  try {
+    const user = await getUser(session.userId);
+    if (!user) return NextResponse.json({ error: "no user" }, { status: 404 });
 
-  return NextResponse.json({ url: checkout.url });
+    let customerId = user.stripeCustomerId;
+    if (!customerId) {
+      const customer = await stripe().customers.create({
+        email: user.email,
+        metadata: { userId: user.userId },
+      });
+      customerId = customer.id;
+      await setStripeCustomerId(user.userId, customerId);
+    }
+
+    const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const checkout = await stripe().checkout.sessions.create({
+      mode: "subscription",
+      customer: customerId,
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: `${origin}/app/plan?checkout=success`,
+      cancel_url: `${origin}/app/settings?checkout=cancel`,
+      allow_promotion_codes: true,
+    });
+
+    return NextResponse.json({ url: checkout.url });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Stripe error";
+    console.error("[billing/checkout]", message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

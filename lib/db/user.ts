@@ -5,6 +5,8 @@ import type { OnboardingState } from "@/lib/onboarding/state";
 import { ddb, getTableName } from "./client";
 import { stripeCustomerGsiKey, userKey } from "./keys";
 
+export type SubscriptionPlan = "plusMonthly" | "plusYearly";
+
 export type UserRecord = {
   userId: string;
   email: string;
@@ -13,6 +15,8 @@ export type UserRecord = {
   onboarding: OnboardingState;
   deletedAt?: string;
   stripeCustomerId?: string;
+  subscriptionPlan?: SubscriptionPlan;
+  subscriptionStatus?: string;
   GSI1PK?: string;
   GSI1SK?: string;
 };
@@ -115,6 +119,23 @@ export async function findByStripeCustomerId(stripeCustomerId: string): Promise<
   );
   const item = res.Items?.[0];
   return item ? fromItem(item) : null;
+}
+
+export async function updateSubscription(
+  userId: string,
+  plan: SubscriptionPlan | undefined,
+  status: string,
+): Promise<UserRecord> {
+  const current = await getUser(userId);
+  if (!current) throw new Error("User record not found");
+  const updated: UserRecord = {
+    ...current,
+    subscriptionPlan: plan,
+    subscriptionStatus: status,
+    updatedAt: new Date().toISOString(),
+  };
+  await ddb.send(new PutCommand({ TableName: getTableName(), Item: toItem(updated) }));
+  return updated;
 }
 
 export async function markUserDeleted(userId: string): Promise<void> {

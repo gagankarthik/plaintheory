@@ -12,6 +12,7 @@ export default async function ChatPage() {
   const user = await getUser(session.userId);
   const threads = await listThreads(session.userId);
   const region = user?.onboarding.region ?? null;
+  const isPlus = !!(user?.subscriptionPlan || user?.stripeCustomerId);
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-8 sm:px-6">
@@ -23,6 +24,7 @@ export default async function ChatPage() {
         initialThreadId={threads[0]?.threadId ?? null}
         region={region}
         userEmail={user?.email ?? session.email}
+        isPlus={isPlus}
       />
     </div>
   );

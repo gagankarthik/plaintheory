@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth/session";
-import { getLocalDate } from "@/lib/date";
+import { getLocalDate, isLocalDay } from "@/lib/date";
 import { getPlan } from "@/lib/db/plans";
 import { listHabitCompletions, listHabits } from "@/lib/db/habits";
 import { listSymptomLogs } from "@/lib/db/symptoms";
@@ -9,24 +9,30 @@ import { getUser } from "@/lib/db/user";
 
 export const runtime = "nodejs";
 
-/**
- * GET /api/today/summary?date=YYYY-MM-DD
- *
- * Returns today's ring/widget data. The client passes its local date as a
- * query param so the server uses the user's actual date, not a UTC guess.
- * Falls back to getLocalDate() (proxy-injected header) if param is absent.
- */
 export async function GET(request: NextRequest) {
   const session = await getCurrentUser();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const paramDate = request.nextUrl.searchParams.get("date");
+  const params = request.nextUrl.searchParams;
   const ISO = /^\d{4}-\d{2}-\d{2}$/;
+  const paramDate = params.get("date");
   const today = paramDate && ISO.test(paramDate) ? paramDate : await getLocalDate();
+
+  const tzRaw = params.get("tz");
+  const tzOffset = tzRaw != null ? parseInt(tzRaw, 10) : null;
+  const safeTz = tzOffset !== null && !isNaN(tzOffset) ? tzOffset : null;
+
+  // Query a 3-day UTC window so no log is missed regardless of timezone.
+  const dayBefore = new Date(new Date(today + "T00:00:00Z").getTime() - 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const dayAfter = new Date(new Date(today + "T00:00:00Z").getTime() + 86_400_000)
+    .toISOString()
+    .slice(0, 10);
 
   const [user, logs, plan, habits, completions] = await Promise.all([
     getUser(session.userId),
-    listSymptomLogs(session.userId, { limit: 200 }),
+    listSymptomLogs(session.userId, { from: dayBefore, to: dayAfter }),
     getPlan(session.userId, today),
     listHabits(session.userId),
     listHabitCompletions(session.userId, { from: today, to: today }),
@@ -34,9 +40,7 @@ export async function GET(request: NextRequest) {
 
   const hydrationTarget = user?.onboarding.body?.hydrationTargetGlasses ?? 8;
 
-  const todayLogs = logs.filter(
-    (l) => (l.localDate ? l.localDate === today : l.timestamp.startsWith(today)),
-  );
+  const todayLogs = logs.filter((l) => isLocalDay(l, today, safeTz));
   const waterCount = todayLogs.filter((l) => l.symptomType === "water").length;
   const checkInCount = todayLogs.length;
 
@@ -46,11 +50,14 @@ export async function GET(request: NextRequest) {
   const activeHabits = habits.filter((h) => !h.archivedAt);
   const habitsDone = completions.filter((c) => c.date === today).length;
 
-  return NextResponse.json({
-    date: today,
-    water: { count: waterCount, target: hydrationTarget },
-    checkIns: { count: checkInCount },
-    plan: { completed: completedCount, total: totalActions },
-    habits: { done: habitsDone, total: activeHabits.length },
-  });
+  return NextResponse.json(
+    {
+      date: today,
+      water: { count: waterCount, target: hydrationTarget },
+      checkIns: { count: checkInCount },
+      plan: { completed: completedCount, total: totalActions },
+      habits: { done: habitsDone, total: activeHabits.length },
+    },
+    { headers: { "Cache-Control": "no-store" } },
+  );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { Sparkles } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { CrisisModal } from "@/components/auth/crisis-modal";
@@ -17,6 +19,7 @@ type Props = {
   initialThreadId: string | null;
   region: RegionId | null;
   userEmail: string;
+  isPlus: boolean;
 };
 
 const COACH_SEED = "plaintheory-coach";
@@ -60,7 +63,7 @@ const MODES: {
   },
 ];
 
-export function ChatView({ initialThreadId, region, userEmail }: Props) {
+export function ChatView({ initialThreadId, region, userEmail, isPlus }: Props) {
   const [mode, setMode] = useState<ChatMode>("coach");
   const [messages, setMessages] = useState<Msg[]>([]);
   const [threadId, setThreadId] = useState<string | null>(initialThreadId);
@@ -183,6 +186,29 @@ export function ChatView({ initialThreadId, region, userEmail }: Props) {
                 ))}
               </div>
             </div>
+
+            {/* Upgrade banner — free users only */}
+            {!isPlus ? (
+              <div className="mt-auto border-t border-border/40 p-3">
+                <div className="rounded-xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-3 space-y-2.5">
+                  <div className="flex items-center gap-1.5">
+                    <Sparkles className="size-3.5 text-primary shrink-0" />
+                    <p className="text-[11px] font-semibold text-primary uppercase tracking-[0.15em]">
+                      Plus
+                    </p>
+                  </div>
+                  <p className="text-[11px] leading-snug text-foreground">
+                    You&rsquo;re on the free plan — <span className="font-medium">5 messages / day</span>. Upgrade for unlimited coaching, all day.
+                  </p>
+                  <Link href="/pricing" className="block">
+                    <Button size="sm" className="w-full gap-1.5 text-xs">
+                      <Sparkles className="size-3" />
+                      Upgrade to Plus
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            ) : null}
           </aside>
 
           {/* Chat area */}
@@ -238,8 +264,23 @@ export function ChatView({ initialThreadId, region, userEmail }: Props) {
               </div>
             ) : null}
             {rateLimited !== null ? (
-              <div className="mx-4 mb-2 rounded-lg bg-warning/15 px-3 py-2 text-xs text-warning">
-                You&rsquo;ve hit today&rsquo;s free limit ({rateLimited} messages). It resets tomorrow.
+              <div className="mx-4 mb-2 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-0.5">
+                    <p className="text-xs font-medium text-foreground">
+                      Daily limit reached &mdash; {rateLimited} messages used
+                    </p>
+                    <p className="text-[11px] text-muted-foreground">
+                      Resets tomorrow. Upgrade to Plus for unlimited coaching.
+                    </p>
+                  </div>
+                  <Link href="/pricing" className="shrink-0">
+                    <Button size="sm" className="gap-1.5 text-xs w-full sm:w-auto">
+                      <Sparkles className="size-3" />
+                      Upgrade to Plus
+                    </Button>
+                  </Link>
+                </div>
               </div>
             ) : null}
 

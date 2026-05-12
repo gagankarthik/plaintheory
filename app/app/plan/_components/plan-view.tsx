@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, PartyPopper, Plus, Sparkles, Trash2, Trophy, X } from "lucide-react";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -8,8 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { UpgradeGate } from "@/components/ui/upgrade-gate";
 import type { DailyPlan, FocusAction } from "@/lib/db/plans";
 import { cn } from "@/lib/utils";
+
+const FREE_TASK_LIMIT = 3;
 
 const CATEGORY_LABELS: Record<FocusAction["category"], string> = {
   food: "Food",
@@ -35,9 +39,11 @@ const COMPLETION_TOASTS = [
   "Three in. Pattern is real.",
   "Four through. You're flying.",
   "Five. A full day.",
+  "Six. Rare consistency.",
+  "Seven. You showed up fully.",
 ];
 
-export function PlanView({ plan }: { plan: DailyPlan }) {
+export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean }) {
   const [actions, setActions] = useState<FocusAction[]>(plan.focusActions);
   const [completed, setCompleted] = useState<Set<string>>(
     new Set(plan.completedActionIds ?? []),
@@ -47,8 +53,13 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
   const [newCategory, setNewCategory] = useState<FocusAction["category"]>("movement");
   const [creating, setCreating] = useState(false);
 
-  const total = actions.length;
-  const doneCount = completed.size;
+  const visibleActions = isPlus ? actions : actions.slice(0, FREE_TASK_LIMIT);
+  const lockedActions = isPlus ? [] : actions.slice(FREE_TASK_LIMIT);
+
+  const total = isPlus ? actions.length : visibleActions.length;
+  const doneCount = isPlus
+    ? completed.size
+    : [...completed].filter((id) => visibleActions.some((a) => a.id === id)).length;
   const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
   const allDone = doneCount === total && total > 0;
   const halfwayJustHit = doneCount === Math.ceil(total / 2) && total > 1;
@@ -78,7 +89,7 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
 
   return (
     <div className="space-y-5">
-      {/* Header — task summary */}
+      {/* Header */}
       <Card className="border-border/60">
         <CardContent className="space-y-4 px-5 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -94,13 +105,19 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
                 Today&rsquo;s tasks
               </h1>
             </div>
-            <Badge variant={allDone ? "success" : "primary"} className="shrink-0">
-              {doneCount} done · {total - doneCount} to go
-            </Badge>
+            <div className="flex items-center gap-2">
+              {!isPlus ? (
+                <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary text-[10px]">
+                  Free · {FREE_TASK_LIMIT} of {actions.length} tasks
+                </Badge>
+              ) : (
+                <Badge variant={allDone ? "success" : "primary"} className="shrink-0">
+                  {doneCount} done · {total - doneCount} to go
+                </Badge>
+              )}
+            </div>
           </div>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {plan.morningBriefing}
-          </p>
+          <p className="text-sm leading-relaxed text-muted-foreground">{plan.morningBriefing}</p>
           <div className="space-y-1.5">
             <div className="h-2 w-full overflow-hidden rounded-full bg-border/60">
               <div
@@ -124,7 +141,7 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
         </CardContent>
       </Card>
 
-      {/* All-done celebration */}
+      {/* All-done */}
       {allDone ? (
         <Card className="border-success/40 bg-gradient-to-br from-success/10 via-success/5 to-transparent">
           <CardContent className="flex items-center gap-4 px-5 py-5 sm:px-6 sm:py-6">
@@ -132,7 +149,7 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
               <Trophy className="size-7" strokeWidth={2} />
             </div>
             <div className="space-y-0.5">
-              <p className="font-serif text-xl tracking-tight text-foreground sm:text-2xl">
+              <p className="font-serif text-xl tracking-tight sm:text-2xl">
                 Full day. All {total} done.
               </p>
               <p className="text-sm leading-relaxed text-muted-foreground">
@@ -148,9 +165,7 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="flex items-center gap-3 px-5 py-4">
             <PartyPopper className="size-5 text-primary" />
-            <p className="text-sm font-medium text-foreground">
-              Halfway there. One more push.
-            </p>
+            <p className="text-sm font-medium text-foreground">Halfway there. One more push.</p>
           </CardContent>
         </Card>
       ) : null}
@@ -162,7 +177,7 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
           <p className="text-xs text-muted-foreground">Tap to check off</p>
         </div>
         <div className="space-y-2">
-          {actions.map((action, idx) => (
+          {visibleActions.map((action, idx) => (
             <TaskRow
               key={action.id}
               index={idx + 1}
@@ -177,7 +192,7 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
                     updated.add(action.id);
                     if (!wasComplete) {
                       if (updated.size === total) {
-                        toast.success("Full day. All actions done.", { icon: "🏆" });
+                        toast.success("Full day. All tasks done.", { icon: "🏆" });
                       } else {
                         toast.success(
                           COMPLETION_TOASTS[updated.size - 1] ?? "Done.",
@@ -213,97 +228,156 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
           ))}
         </div>
 
-        {/* Add custom task */}
-        {adding ? (
-          <Card className="border-primary/30 bg-primary/5">
-            <CardContent className="space-y-2.5 p-3 sm:p-4">
-              <Input
-                value={newText}
-                onChange={(e) => setNewText(e.target.value)}
-                placeholder="e.g. Send the thing I've been avoiding"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    void submitNew();
-                  } else if (e.key === "Escape") {
-                    setAdding(false);
-                    setNewText("");
-                  }
-                }}
-              />
-              <div className="flex flex-wrap gap-1.5">
-                {(
-                  ["movement", "food", "stress", "sleep", "hydration", "medication"] as const
-                ).map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => setNewCategory(c)}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs transition-colors",
-                      newCategory === c
-                        ? "border-primary/40 bg-primary/15 text-primary"
-                        : "border-border/60 bg-card text-muted-foreground hover:bg-accent/40",
-                    )}
+        {/* Locked tasks gate */}
+        {lockedActions.length > 0 ? (
+          <UpgradeGate
+            title={`${lockedActions.length} more tasks locked`}
+            description={`Plus gives you all ${actions.length} tasks tailored to your profile — plus routines, reflection prompts, and more.`}
+            preview={
+              <div className="space-y-2">
+                {lockedActions.slice(0, 3).map((action, idx) => (
+                  <div
+                    key={action.id}
+                    className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-4 sm:px-5"
                   >
-                    {CATEGORY_LABELS[c]}
-                  </button>
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-border bg-card" />
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/60 text-base sm:size-10">
+                      {CATEGORY_EMOJI[action.category]}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
+                        Task {FREE_TASK_LIMIT + idx + 1} · {CATEGORY_LABELS[action.category]}
+                      </p>
+                      <p className="truncate text-sm text-foreground sm:text-base">{action.text}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <div className="flex gap-2">
-                <Button onClick={submitNew} loading={creating} size="sm" className="flex-1">
-                  Add task
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setAdding(false);
-                    setNewText("");
+            }
+          />
+        ) : null}
+
+        {/* Add custom task — Plus only */}
+        {isPlus ? (
+          adding ? (
+            <Card className="border-primary/30 bg-primary/5">
+              <CardContent className="space-y-2.5 p-3 sm:p-4">
+                <Input
+                  value={newText}
+                  onChange={(e) => setNewText(e.target.value)}
+                  placeholder="e.g. Send the thing I've been avoiding"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); void submitNew(); }
+                    else if (e.key === "Escape") { setAdding(false); setNewText(""); }
                   }}
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className={cn(
-              "flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border/60 bg-card/40 px-4 py-3 text-sm font-medium text-muted-foreground transition-all",
-              "hover:border-primary/40 hover:bg-card hover:text-foreground",
-            )}
-          >
-            <Plus className="size-4" /> Add your own task
-          </button>
-        )}
+                />
+                <div className="flex flex-wrap gap-1.5">
+                  {(["movement", "food", "stress", "sleep", "hydration", "medication"] as const).map(
+                    (c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => setNewCategory(c)}
+                        className={cn(
+                          "rounded-full border px-3 py-1 text-xs transition-colors",
+                          newCategory === c
+                            ? "border-primary/40 bg-primary/15 text-primary"
+                            : "border-border/60 bg-card text-muted-foreground hover:bg-accent/40",
+                        )}
+                      >
+                        {CATEGORY_LABELS[c]}
+                      </button>
+                    ),
+                  )}
+                </div>
+                <div className="flex gap-2">
+                  <Button onClick={submitNew} loading={creating} size="sm" className="flex-1">
+                    Add task
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => { setAdding(false); setNewText(""); }}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className={cn(
+                "flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-border/60 bg-card/40 px-4 py-3 text-sm font-medium text-muted-foreground transition-all",
+                "hover:border-primary/40 hover:bg-card hover:text-foreground",
+              )}
+            >
+              <Plus className="size-4" /> Add your own task
+            </button>
+          )
+        ) : null}
       </section>
 
-      {/* Notice card */}
-      <Card className="border-warning/30 bg-warning/5">
-        <CardContent className="space-y-1.5 px-5 py-5 sm:px-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-warning">Notice today</p>
-          <p className="text-sm leading-relaxed text-foreground">{plan.watchFor}</p>
-        </CardContent>
-      </Card>
+      {/* Watch for — Plus only */}
+      {isPlus ? (
+        <Card className="border-warning/30 bg-warning/5">
+          <CardContent className="space-y-1.5 px-5 py-5 sm:px-6">
+            <p className="text-xs uppercase tracking-[0.2em] text-warning">Notice today</p>
+            <p className="text-sm leading-relaxed text-foreground">{plan.watchFor}</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <UpgradeGate
+          title="Notice today"
+          description="Your AI coach highlights one pattern to watch. Available on Plus."
+          compact
+        />
+      )}
 
-      {/* Reflection */}
-      <Card className="border-border/60">
-        <CardContent className="space-y-3 px-5 py-5 sm:px-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Evening reflection
-          </p>
-          <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-foreground">
-            {plan.reflectionPrompts.map((q) => (
-              <li key={q}>{q}</li>
-            ))}
-          </ol>
-        </CardContent>
-      </Card>
+      {/* Reflection — Plus only */}
+      {isPlus ? (
+        <Card className="border-border/60">
+          <CardContent className="space-y-3 px-5 py-5 sm:px-6">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+              Evening reflection
+            </p>
+            <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-foreground">
+              {plan.reflectionPrompts.map((q) => (
+                <li key={q}>{q}</li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+      ) : (
+        <UpgradeGate
+          title="Evening reflection"
+          description="3 personalised reflection questions to close your day. Available on Plus."
+          compact
+        />
+      )}
+
+      {/* Upgrade CTA strip — free users only */}
+      {!isPlus ? (
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/8 via-primary/5 to-transparent">
+          <CardContent className="flex flex-col gap-3 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div>
+              <p className="font-medium text-foreground">Unlock the full plan</p>
+              <p className="text-sm text-muted-foreground">
+                {actions.length - FREE_TASK_LIMIT} more tasks, routines, reflection, and unlimited chat.
+              </p>
+            </div>
+            <Link href="/pricing" className="shrink-0">
+              <Button className="w-full gap-1.5 sm:w-auto">
+                <Sparkles className="size-4" />
+                Upgrade to Plus
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <p className="pt-1 text-center text-xs text-muted-foreground">
         General coaching, not therapy or medical advice.

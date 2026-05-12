@@ -36,8 +36,8 @@ export const DAILY_PLAN_SCHEMA: Record<string, unknown> = {
     },
     focusActions: {
       type: "array",
-      minItems: 3,
-      maxItems: 5,
+      minItems: 5,
+      maxItems: 7,
       items: {
         type: "object",
         additionalProperties: false,
@@ -103,7 +103,7 @@ Hard rules — never violate:
 4. No diet or fitness prescriptions framed as "you must" — coaching is suggestions, not orders.
 5. Tone: warm, plain language, present tense, concrete. Avoid hedging clichés ("just listen to your body"). Avoid jargon.
 
-Output the JSON schema exactly. focusActions are 3–5 specific, doable today. routines are exactly two entries — one Morning Routine and one Evening Routine — each with 3–5 concrete steps timed to the user's wake/sleep schedule. watchFor is one pattern to notice. reflectionPrompts are three short evening questions.
+Output the JSON schema exactly. focusActions are 5–7 specific, concrete, doable-today tasks spread across the user's focus areas — never vague, never repetitive. Vary the categories. routines are exactly two entries — one Morning Routine and one Evening Routine — each with 3–5 concrete steps timed to the user's wake/sleep schedule. watchFor is one pattern to notice. reflectionPrompts are three short evening questions.
 
 User's focus areas (the wellness topics they picked):
 ${context.focusAreas

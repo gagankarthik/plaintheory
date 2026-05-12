@@ -43,6 +43,7 @@ export async function proxy(request: NextRequest) {
       const localMs = Date.now() - offset * 60 * 1_000;
       const localDate = new Date(localMs).toISOString().slice(0, 10);
       requestHeaders.set("x-pt-local-date", localDate);
+      requestHeaders.set("x-pt-tz-offset", String(offset));
     }
   } else {
     const dateVal = request.cookies.get("pt-local-date")?.value;
@@ -62,5 +63,6 @@ function redirectToSignIn(request: NextRequest): NextResponse {
 }
 
 export const config = {
-  matcher: ["/app/:path*", "/onboarding/:path*"],
+  // Explicitly include root paths — /app/:path* alone may miss /app in Next.js 16.
+  matcher: ["/app", "/app/:path+", "/onboarding", "/onboarding/:path+"],
 };

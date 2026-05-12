@@ -29,7 +29,7 @@ import {
 } from "@/lib/achievements";
 import { getCurrentUser } from "@/lib/auth/session";
 import { CONDITIONS, GOALS } from "@/lib/onboarding/options";
-import { getLocalDate } from "@/lib/date";
+import { getLocalDate, getLocalTzOffset, isLocalDay } from "@/lib/date";
 import { getPlan, listPlans } from "@/lib/db/plans";
 import { listHabits, listHabitCompletions } from "@/lib/db/habits";
 import { listSymptomLogs } from "@/lib/db/symptoms";
@@ -62,6 +62,7 @@ export default async function AppHome() {
   if (!user) return null;
 
   const date = await getLocalDate();
+  const tzOffset = await getLocalTzOffset();
   let plan = await getPlan(session.userId, date);
   let planError: string | null = null;
   if (!plan) {
@@ -85,9 +86,7 @@ export default async function AppHome() {
       listHabitCompletions(session.userId, { from: sixtyDaysAgo, to: date }),
     ]);
 
-  const todayLogs = allLogs.filter(
-    (l) => (l.localDate ? l.localDate === date : l.timestamp.startsWith(date)),
-  );
+  const todayLogs = allLogs.filter((l) => isLocalDay(l, date, tzOffset));
   const waterToday = todayLogs.filter((l) => l.symptomType === "water").length;
   const hydrationTarget = user.onboarding.body?.hydrationTargetGlasses ?? 8;
   const latestMoodLog = recentLogs.find((l) => l.symptomType === "mood");

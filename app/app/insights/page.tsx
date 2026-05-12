@@ -1,9 +1,11 @@
 import { Activity, Compass, Flame, Sparkles } from "lucide-react";
 
 import { Card, CardContent } from "@/components/ui/card";
+import { UpgradeGate } from "@/components/ui/upgrade-gate";
 import { getCurrentUser } from "@/lib/auth/session";
 import { listPlans } from "@/lib/db/plans";
 import { listSymptomLogs } from "@/lib/db/symptoms";
+import { getUser } from "@/lib/db/user";
 
 import { ActivityChart, CheckinGraph, TrendChart, type CheckinActivity, type DayPoint } from "./_components/insights-charts";
 
@@ -88,18 +90,34 @@ function buildContributionData(
   return result;
 }
 
+export const metadata = {
+  title: "Insights",
+  description: "Your weekly patterns — mood, energy, check-in streaks, and plan completion.",
+};
+
 export default async function InsightsPage() {
   const session = await getCurrentUser();
   if (!session) return null;
+
+  const user = await getUser(session.userId);
+  const isPlus = !!(user?.subscriptionPlan || user?.stripeCustomerId);
+
   const weekFrom = isoNDaysAgo(7);
   const yearFrom = isoNDaysAgo(364);
   const to = new Date().toISOString();
 
-  const [logs, yearLogs, plans] = await Promise.all([
-    listSymptomLogs(session.userId, { from: weekFrom, to, limit: 500 }),
-    listSymptomLogs(session.userId, { from: yearFrom, to, limit: 2000, newestFirst: false }),
-    listPlans(session.userId, { from: weekFrom, to: to.slice(0, 10), limit: 14 }),
-  ]);
+  // Free users get KPIs only — no heavy data fetch needed for the gate
+  const [logs, yearLogs, plans] = isPlus
+    ? await Promise.all([
+        listSymptomLogs(session.userId, { from: weekFrom, to, limit: 500 }),
+        listSymptomLogs(session.userId, { from: yearFrom, to, limit: 2000, newestFirst: false }),
+        listPlans(session.userId, { from: weekFrom, to: to.slice(0, 10), limit: 14 }),
+      ])
+    : await Promise.all([
+        listSymptomLogs(session.userId, { from: weekFrom, to, limit: 100 }),
+        Promise.resolve([] as Awaited<ReturnType<typeof listSymptomLogs>>),
+        listPlans(session.userId, { from: weekFrom, to: to.slice(0, 10), limit: 7 }),
+      ]);
 
   const series = buildDailySeries(logs);
   const contributionData = buildContributionData(yearLogs, yearFrom, to.slice(0, 10));
@@ -156,12 +174,32 @@ export default async function InsightsPage() {
         />
       </div>
 
-      <CheckinGraph data={contributionData} />
-
-      <TrendChart data={series} />
+      {isPlus ? (
+        <>
+          <CheckinGraph data={contributionData} />
+          <TrendChart data={series} />
+        </>
+      ) : (
+        <UpgradeGate
+          title="Activity graph & trend charts"
+          description="See your check-in heatmap across the year and 7-day mood, energy, focus, and sleep trends. Available on Plus."
+          preview={
+            <div className="space-y-4">
+              <div className="h-32 w-full rounded-2xl border border-border/60 bg-card/40" />
+              <div className="h-48 w-full rounded-2xl border border-border/60 bg-card/40" />
+            </div>
+          }
+        />
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <ActivityChart data={series} />
+        {isPlus ? <ActivityChart data={series} /> : (
+          <UpgradeGate
+            title="Activity breakdown"
+            description="Daily log counts and category breakdown. Available on Plus."
+            preview={<div className="h-48 w-full rounded-2xl border border-border/60 bg-card/40" />}
+          />
+        )}
         <Card className="border-border/60">
           <CardContent className="space-y-4 px-6 py-6">
             <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
