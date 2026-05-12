@@ -1,10 +1,12 @@
 import { z } from "zod";
 
-import { CONDITIONS, GOALS, REGIONS } from "./options";
+import { ALLERGENS, CONDITIONS, DIETARY_PATTERNS, GOALS, REGIONS } from "./options";
 
 const regionValues = REGIONS.map((r) => r.value) as [string, ...string[]];
 const conditionIds = CONDITIONS.map((c) => c.id) as [string, ...string[]];
 const goalIds = GOALS.map((g) => g.id) as [string, ...string[]];
+const dietaryPatternIds = DIETARY_PATTERNS.map((d) => d.id) as [string, ...string[]];
+const allergenIds = ALLERGENS.map((a) => a.id) as [string, ...string[]];
 
 const CURRENT_YEAR = new Date().getFullYear();
 
@@ -77,6 +79,8 @@ export const onboardingPatchSchema = z.object({
     .regex(/^\d{2}:\d{2}$/)
     .optional(),
   goals: z.array(z.enum(goalIds)).optional(),
+  dietaryPatterns: z.array(z.enum(dietaryPatternIds)).optional(),
+  allergens: z.array(z.enum(allergenIds)).optional(),
   notifications: notificationsSchema.optional(),
   body: bodyMetricsSchema.optional(),
   step: z

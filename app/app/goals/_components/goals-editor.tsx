@@ -10,11 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
   ACTIVITY_LEVELS,
+  ALLERGENS,
   CONDITIONS,
   CONDITION_CLUSTERS,
+  DIETARY_PATTERNS,
   GOALS,
   type ActivityLevelId,
+  type AllergenId,
   type ConditionId,
+  type DietaryPatternId,
   type GoalId,
 } from "@/lib/onboarding/options";
 import type { OnboardingState } from "@/lib/onboarding/state";
@@ -24,6 +28,10 @@ export function GoalsEditor({ initial }: { initial: OnboardingState }) {
   const [conditions, setConditions] = useState<ConditionId[]>(initial.conditions ?? []);
   const [goals, setGoals] = useState<GoalId[]>(initial.goals ?? []);
   const [dietaryNotes, setDietaryNotes] = useState(initial.medications ?? "");
+  const [dietaryPatterns, setDietaryPatterns] = useState<DietaryPatternId[]>(
+    initial.dietaryPatterns ?? [],
+  );
+  const [allergens, setAllergens] = useState<AllergenId[]>(initial.allergens ?? []);
   const [wakeTime, setWakeTime] = useState(initial.wakeTime ?? "07:00");
   const [sleepTime, setSleepTime] = useState(initial.sleepTime ?? "23:00");
   const [heightCm, setHeightCm] = useState(initial.body?.heightCm?.toString() ?? "");
@@ -240,6 +248,84 @@ export function GoalsEditor({ initial }: { initial: OnboardingState }) {
               </Button>
             ) : null}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Dietary patterns */}
+      <Card className="border-border/60">
+        <CardHeader className="px-6 pt-6 pb-2">
+          <CardTitle className="text-lg">Dietary patterns</CardTitle>
+          <CardDescription>
+            How you generally eat. The coach avoids suggesting anything outside your pattern.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-1.5 px-6 pb-6 sm:grid-cols-3">
+          {DIETARY_PATTERNS.map((d) => {
+            const checked = dietaryPatterns.includes(d.id);
+            return (
+              <label
+                key={d.id}
+                className={cn(
+                  "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition-colors",
+                  checked
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-border/60 hover:bg-accent/40",
+                )}
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={(state) => {
+                    const next =
+                      state === true
+                        ? [...dietaryPatterns, d.id]
+                        : dietaryPatterns.filter((id) => id !== d.id);
+                    setDietaryPatterns(next);
+                    save({ dietaryPatterns: next });
+                  }}
+                />
+                <span>{d.label}</span>
+              </label>
+            );
+          })}
+        </CardContent>
+      </Card>
+
+      {/* Allergens */}
+      <Card className="border-border/60">
+        <CardHeader className="px-6 pt-6 pb-2">
+          <CardTitle className="text-lg">Allergens to avoid</CardTitle>
+          <CardDescription>
+            Things to keep out of meal and recipe suggestions entirely.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-1.5 px-6 pb-6 sm:grid-cols-3">
+          {ALLERGENS.map((a) => {
+            const checked = allergens.includes(a.id);
+            return (
+              <label
+                key={a.id}
+                className={cn(
+                  "flex cursor-pointer items-center gap-2.5 rounded-xl border px-3 py-2.5 text-sm transition-colors",
+                  checked
+                    ? "border-destructive/30 bg-destructive/5"
+                    : "border-border/60 hover:bg-accent/40",
+                )}
+              >
+                <Checkbox
+                  checked={checked}
+                  onCheckedChange={(state) => {
+                    const next =
+                      state === true
+                        ? [...allergens, a.id]
+                        : allergens.filter((id) => id !== a.id);
+                    setAllergens(next);
+                    save({ allergens: next });
+                  }}
+                />
+                <span>{a.label}</span>
+              </label>
+            );
+          })}
         </CardContent>
       </Card>
 

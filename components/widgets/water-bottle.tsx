@@ -1,11 +1,13 @@
 "use client";
 
 import { Droplet, Plus } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+
+const localDate = () => new Intl.DateTimeFormat("en-CA").format(new Date());
 
 type Props = {
   initialGlasses: number;
@@ -19,14 +21,27 @@ export function WaterBottle({ initialGlasses, target, className }: Props) {
   const safeTarget = Math.max(1, target);
   const pct = Math.min(100, Math.round((glasses / safeTarget) * 100));
 
+  // Self-correct: if SSR rendered a stale date, the initialGlasses could be
+  // from yesterday. Fetch the true today's count after mount.
+  useEffect(() => {
+    const today = localDate();
+    fetch(`/api/water?date=${today}`)
+      .then((r) => r.json())
+      .then((data: { count: number }) => {
+        if (typeof data.count === "number") setGlasses(data.count);
+      })
+      .catch(() => { /* keep initialGlasses on error */ });
+  }, []);
+
   const addGlass = () => {
+    const today = localDate();
     const next = glasses + 1;
     setGlasses(next);
     startTransition(async () => {
       const res = await fetch("/api/log", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: "water", severity: 1 }),
+        body: JSON.stringify({ type: "water", severity: 1, localDate: today }),
       });
       if (!res.ok) {
         toast.error("Couldn't save. Try again.");
@@ -49,14 +64,12 @@ export function WaterBottle({ initialGlasses, target, className }: Props) {
                 <path d="M22 4 L42 4 L42 18 Q42 22 46 26 Q56 36 56 56 L56 96 Q56 108 44 108 L20 108 Q8 108 8 96 L8 56 Q8 36 18 26 Q22 22 22 18 Z" />
               </clipPath>
             </defs>
-            {/* Bottle outline */}
             <path
               d="M22 4 L42 4 L42 18 Q42 22 46 26 Q56 36 56 56 L56 96 Q56 108 44 108 L20 108 Q8 108 8 96 L8 56 Q8 36 18 26 Q22 22 22 18 Z"
               fill="var(--card)"
               stroke="var(--border)"
               strokeWidth="2"
             />
-            {/* Water fill */}
             <g clipPath="url(#bottle-clip)">
               <rect
                 x="0"
@@ -67,7 +80,6 @@ export function WaterBottle({ initialGlasses, target, className }: Props) {
                 opacity="0.7"
                 className="transition-all duration-700 ease-out"
               />
-              {/* Wave detail */}
               <ellipse
                 cx="32"
                 cy={112 - (pct / 100) * 104}
@@ -78,7 +90,6 @@ export function WaterBottle({ initialGlasses, target, className }: Props) {
                 className="transition-all duration-700 ease-out"
               />
             </g>
-            {/* Cap */}
             <rect x="20" y="2" width="24" height="4" rx="1.5" fill="var(--primary)" />
           </svg>
         </div>

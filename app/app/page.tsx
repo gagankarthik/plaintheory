@@ -1,6 +1,8 @@
 import { ArrowRight, CalendarDays, MessageCircle, NotebookPen, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
+import { SyncPlanButton } from "./_components/sync-plan-button";
+
 import { ActivityRings } from "@/components/widgets/activity-rings";
 import { BadgesRow } from "@/components/widgets/badges-row";
 import { MoodFace } from "@/components/widgets/mood-face";
@@ -83,7 +85,9 @@ export default async function AppHome() {
       listHabitCompletions(session.userId, { from: sixtyDaysAgo, to: date }),
     ]);
 
-  const todayLogs = allLogs.filter((l) => l.timestamp.startsWith(date));
+  const todayLogs = allLogs.filter(
+    (l) => (l.localDate ? l.localDate === date : l.timestamp.startsWith(date)),
+  );
   const waterToday = todayLogs.filter((l) => l.symptomType === "water").length;
   const hydrationTarget = user.onboarding.body?.hydrationTargetGlasses ?? 8;
   const latestMoodLog = recentLogs.find((l) => l.symptomType === "mood");
@@ -158,11 +162,14 @@ export default async function AppHome() {
                 <CardDescription className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                   Today · {new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                 </CardDescription>
-                <Link href="/app/plan">
-                  <Button variant="ghost" size="sm">
-                    Full plan <ArrowRight className="size-3" />
-                  </Button>
-                </Link>
+                <div className="flex items-center gap-1.5">
+                  <SyncPlanButton />
+                  <Link href="/app/plan">
+                    <Button variant="ghost" size="sm">
+                      Full plan <ArrowRight className="size-3" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
               <CardTitle className="font-serif text-xl">
                 {planDone

@@ -5,7 +5,7 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { listPlans } from "@/lib/db/plans";
 import { listSymptomLogs } from "@/lib/db/symptoms";
 
-import { ActivityChart, TrendChart, type DayPoint } from "./_components/insights-charts";
+import { ActivityChart, CheckinGraph, TrendChart, type CheckinActivity, type DayPoint } from "./_components/insights-charts";
 
 export const dynamic = "force-dynamic";
 
@@ -61,18 +61,48 @@ function streak(logs: Log[]): number {
   return count;
 }
 
+function buildContributionData(
+  logs: Awaited<ReturnType<typeof listSymptomLogs>>,
+  from: string,
+  to: string,
+): CheckinActivity[] {
+  const countByDate = new Map<string, number>();
+  for (const log of logs) {
+    const date = log.timestamp.slice(0, 10);
+    countByDate.set(date, (countByDate.get(date) ?? 0) + 1);
+  }
+
+  const start = new Date(from + "T00:00:00");
+  const end = new Date(to + "T00:00:00");
+  const result: CheckinActivity[] = [];
+  const cursor = new Date(start);
+
+  while (cursor <= end) {
+    const date = cursor.toISOString().slice(0, 10);
+    const count = countByDate.get(date) ?? 0;
+    const level = count === 0 ? 0 : count === 1 ? 1 : count === 2 ? 2 : count <= 4 ? 3 : 4;
+    result.push({ date, count, level });
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return result;
+}
+
 export default async function InsightsPage() {
   const session = await getCurrentUser();
   if (!session) return null;
-  const from = isoNDaysAgo(7);
+  const weekFrom = isoNDaysAgo(7);
+  const yearFrom = isoNDaysAgo(364);
   const to = new Date().toISOString();
 
-  const [logs, plans] = await Promise.all([
-    listSymptomLogs(session.userId, { from, to, limit: 500 }),
-    listPlans(session.userId, { from, to: to.slice(0, 10), limit: 14 }),
+  const [logs, yearLogs, plans] = await Promise.all([
+    listSymptomLogs(session.userId, { from: weekFrom, to, limit: 500 }),
+    listSymptomLogs(session.userId, { from: yearFrom, to, limit: 2000, newestFirst: false }),
+    listPlans(session.userId, { from: weekFrom, to: to.slice(0, 10), limit: 14 }),
   ]);
 
   const series = buildDailySeries(logs);
+  const contributionData = buildContributionData(yearLogs, yearFrom, to.slice(0, 10));
   const moodLogs = logs.filter((l) => l.symptomType === "mood" && l.severity);
   const energyLogs = logs.filter((l) => l.symptomType === "energy" && l.severity);
   const avg = (arr: Log[]) =>
@@ -125,6 +155,8 @@ export default async function InsightsPage() {
           hint={`${actionsDone}/${actionsTotal} actions`}
         />
       </div>
+
+      <CheckinGraph data={contributionData} />
 
       <TrendChart data={series} />
 

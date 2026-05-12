@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getCurrentUser } from "@/lib/auth/session";
 import { getUser } from "@/lib/db/user";
 
+import { AccountSettings } from "./_components/account-settings";
 import { DeleteAccountButton } from "./_components/delete-account-button";
 import { ManageBillingButton } from "./_components/manage-billing-button";
 import { NotificationsSettings } from "./_components/notifications-settings";
@@ -36,14 +37,15 @@ export default async function SettingsPage() {
 
       <Card className="border-border/60">
         <CardHeader className="px-6 pt-6 pb-2">
-          <CardTitle className="text-lg">Account info</CardTitle>
-          <CardDescription>Read-only summary of your account.</CardDescription>
+          <CardTitle className="text-lg">Account</CardTitle>
+          <CardDescription>
+            Your account details. Region and birth year can be updated below.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 px-6 pb-6 sm:grid-cols-2">
-          <Stat label="Email" value={email} />
-          <Stat
-            label="Member since"
-            value={
+        <CardContent className="px-6 pb-6">
+          <AccountSettings
+            email={email}
+            memberSince={
               createdAt
                 ? createdAt.toLocaleDateString(undefined, {
                     year: "numeric",
@@ -52,12 +54,9 @@ export default async function SettingsPage() {
                   })
                 : "—"
             }
+            plan={user?.stripeCustomerId ? "Plus" : "Free"}
+            onboarding={user?.onboarding ?? { step: "complete" }}
           />
-          <Stat
-            label="Plan"
-            value={user?.stripeCustomerId ? "Plus" : "Free"}
-          />
-          <Stat label="Region" value={user?.onboarding.region ?? "—"} />
         </CardContent>
       </Card>
 
@@ -69,7 +68,7 @@ export default async function SettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          <NotificationsSettings initial={user?.onboarding.notifications} />
+          <NotificationsSettings initial={user?.onboarding?.notifications} />
         </CardContent>
       </Card>
 
@@ -146,11 +145,3 @@ export default async function SettingsPage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-border/60 bg-card/60 px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.15em] text-muted-foreground">{label}</p>
-      <p className="mt-0.5 truncate font-medium text-foreground">{value}</p>
-    </div>
-  );
-}

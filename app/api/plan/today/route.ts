@@ -2,20 +2,18 @@ import { NextResponse } from "next/server";
 
 import { generateDailyPlan } from "@/lib/ai/daily-plan";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getLocalDate } from "@/lib/date";
 import { getPlan } from "@/lib/db/plans";
 
 export const runtime = "nodejs";
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export async function GET() {
   const session = await getCurrentUser();
   if (!session) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-  const plan = await getPlan(session.userId, today());
+  const date = await getLocalDate();
+  const plan = await getPlan(session.userId, date);
   return NextResponse.json({ plan });
 }
 
@@ -25,7 +23,8 @@ export async function POST() {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
   try {
-    const plan = await generateDailyPlan(session.userId, today());
+    const date = await getLocalDate();
+    const plan = await generateDailyPlan(session.userId, date);
     return NextResponse.json({ plan });
   } catch (err) {
     console.error("[plan] generation failed:", err);

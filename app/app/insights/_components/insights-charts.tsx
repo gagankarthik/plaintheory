@@ -13,7 +13,19 @@ import {
   YAxis,
 } from "recharts";
 
+import {
+  ContributionGraph,
+  ContributionGraphBlock,
+  ContributionGraphCalendar,
+  ContributionGraphFooter,
+  ContributionGraphLegend,
+  ContributionGraphTotalCount,
+  type Activity,
+} from "@/components/kibo-ui/contribution-graph";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+
+export type CheckinActivity = Activity;
 
 export type DayPoint = {
   date: string;
@@ -143,6 +155,83 @@ export function ActivityChart({ data }: { data: DayPoint[] }) {
             </BarChart>
           </ResponsiveContainer>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function CheckinGraph({ data }: { data: CheckinActivity[] }) {
+  if (data.length === 0) return null;
+
+  return (
+    <Card className="border-border/60">
+      <CardHeader className="px-6 pt-6 pb-2">
+        <CardTitle className="text-lg">Activity over time</CardTitle>
+        <CardDescription>Every square is a day. Darker = more check-ins.</CardDescription>
+      </CardHeader>
+      <CardContent className="overflow-x-auto px-6 pb-6">
+        <ContributionGraph
+          data={data}
+          blockSize={13}
+          blockRadius={3}
+          blockMargin={3}
+          fontSize={11}
+          className="text-muted-foreground"
+        >
+          <ContributionGraphCalendar>
+            {({ activity, dayIndex, weekIndex }) => (
+              <g>
+                <title>
+                  {activity.count === 0
+                    ? activity.date
+                    : `${activity.date} · ${activity.count} check-in${activity.count === 1 ? "" : "s"}`}
+                </title>
+                <ContributionGraphBlock
+                  activity={activity}
+                  dayIndex={dayIndex}
+                  weekIndex={weekIndex}
+                  className={cn(
+                    'data-[level="0"]:fill-muted',
+                    'data-[level="1"]:fill-primary/30',
+                    'data-[level="2"]:fill-primary/55',
+                    'data-[level="3"]:fill-primary/80',
+                    'data-[level="4"]:fill-primary',
+                  )}
+                />
+              </g>
+            )}
+          </ContributionGraphCalendar>
+          <ContributionGraphFooter className="mt-2 text-xs">
+            <ContributionGraphTotalCount>
+              {({ totalCount }) => (
+                <span className="text-muted-foreground">
+                  {totalCount} check-in{totalCount === 1 ? "" : "s"} tracked
+                </span>
+              )}
+            </ContributionGraphTotalCount>
+            <ContributionGraphLegend>
+              {({ level }) => (
+                <svg height={13} width={13}>
+                  <title>{`Level ${level}`}</title>
+                  <rect
+                    className={cn(
+                      'data-[level="0"]:fill-muted',
+                      'data-[level="1"]:fill-primary/30',
+                      'data-[level="2"]:fill-primary/55',
+                      'data-[level="3"]:fill-primary/80',
+                      'data-[level="4"]:fill-primary',
+                    )}
+                    data-level={level}
+                    height={13}
+                    rx={3}
+                    ry={3}
+                    width={13}
+                  />
+                </svg>
+              )}
+            </ContributionGraphLegend>
+          </ContributionGraphFooter>
+        </ContributionGraph>
       </CardContent>
     </Card>
   );

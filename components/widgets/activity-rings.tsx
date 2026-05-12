@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -16,14 +20,50 @@ type Props = {
   className?: string;
 };
 
+type Summary = {
+  water: { count: number; target: number };
+  checkIns: { count: number };
+  plan: { completed: number; total: number };
+};
+
 const RING_RADIUS = 44;
 const RING_GAP = 10;
 
+const localDate = () => new Intl.DateTimeFormat("en-CA").format(new Date());
+
 export function ActivityRings({ hydration, checkIns, planActions, className }: Props) {
+  const [values, setValues] = useState({
+    water: hydration.value,
+    waterTarget: hydration.target,
+    checkIns: checkIns.value,
+    checkInsTarget: checkIns.target,
+    plan: planActions.value,
+    planTotal: planActions.target,
+  });
+
+  // Self-correct: fetch today's actual values using the client's local date.
+  // This fixes cases where SSR rendered with a stale UTC or wrong-day date.
+  useEffect(() => {
+    const today = localDate();
+    fetch(`/api/today/summary?date=${today}`)
+      .then((r) => r.json())
+      .then((data: Summary) => {
+        setValues({
+          water: data.water.count,
+          waterTarget: data.water.target,
+          checkIns: data.checkIns.count,
+          checkInsTarget: 3,
+          plan: data.plan.completed,
+          planTotal: data.plan.total || 1,
+        });
+      })
+      .catch(() => { /* keep SSR values */ });
+  }, []);
+
   const rings: Ring[] = [
-    { label: "Hydration", value: hydration.value, target: hydration.target, color: "var(--info)", unit: "glasses" },
-    { label: "Check-ins", value: checkIns.value, target: checkIns.target, color: "var(--primary)", unit: "today" },
-    { label: "Plan", value: planActions.value, target: planActions.target, color: "var(--success)", unit: "actions" },
+    { label: "Hydration", value: values.water, target: values.waterTarget, color: "var(--info)", unit: "glasses" },
+    { label: "Check-ins", value: values.checkIns, target: values.checkInsTarget, color: "var(--primary)", unit: "today" },
+    { label: "Plan", value: values.plan, target: values.planTotal, color: "var(--success)", unit: "actions" },
   ];
 
   return (
@@ -38,26 +78,11 @@ export function ActivityRings({ hydration, checkIns, planActions, className }: P
               const offset = c * (1 - pct);
               return (
                 <g key={ring.label}>
+                  <circle cx="80" cy="80" r={r} fill="none" stroke={ring.color} strokeWidth="9" strokeLinecap="round" opacity="0.15" />
                   <circle
-                    cx="80"
-                    cy="80"
-                    r={r}
-                    fill="none"
-                    stroke={ring.color}
-                    strokeWidth="9"
-                    strokeLinecap="round"
-                    opacity="0.15"
-                  />
-                  <circle
-                    cx="80"
-                    cy="80"
-                    r={r}
-                    fill="none"
-                    stroke={ring.color}
-                    strokeWidth="9"
-                    strokeLinecap="round"
-                    strokeDasharray={c}
-                    strokeDashoffset={offset}
+                    cx="80" cy="80" r={r} fill="none"
+                    stroke={ring.color} strokeWidth="9" strokeLinecap="round"
+                    strokeDasharray={c} strokeDashoffset={offset}
                     className="transition-all duration-700 ease-out"
                     style={{ filter: `drop-shadow(0 0 6px ${ring.color}40)` }}
                   />
@@ -76,10 +101,7 @@ export function ActivityRings({ hydration, checkIns, planActions, className }: P
               return (
                 <div key={ring.label} className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span
-                      className="size-2.5 rounded-full"
-                      style={{ backgroundColor: ring.color }}
-                    />
+                    <span className="size-2.5 rounded-full" style={{ backgroundColor: ring.color }} />
                     <span className="text-sm font-medium text-foreground">{ring.label}</span>
                   </div>
                   <span className="text-xs text-muted-foreground">

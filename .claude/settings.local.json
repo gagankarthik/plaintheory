@@ -12,7 +12,9 @@
       "Bash(sed -i.bak -e s/^COGNITO_USER_POOL_ID=/NEXT_PUBLIC_COGNITO_USER_POOL_ID=/ -e s/^COGNITO_USER_POOL_CLIENT_ID=/NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID=/ -e s/^COGNITO_OAUTH_DOMAIN=/NEXT_PUBLIC_COGNITO_OAUTH_DOMAIN=/ -e /^COGNITO_USER_POOL_CLIENT_SECRET=/d .env.local .env.example)",
       "Bash(rm .env.local.bak .env.example.bak)",
       "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\\\\app\\\\app\" -Recurse -Directory | Select-Object FullName | ForEach-Object { $_.FullName } | Sort-Object)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npx shadcn *)",
+      "Bash(node -e \"console.log\\(require\\('./node_modules/next/package.json'\\).version\\)\")"
     ]
   }
 }

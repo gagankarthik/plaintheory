@@ -30,6 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       throw err;
     }
     console.error("[app layout] user lookup failed:", err);
+    redirect("/onboarding");
   }
 
   return (

@@ -60,10 +60,12 @@ export const DAILY_PLAN_SCHEMA: Record<string, unknown> = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["title", "steps"],
+        required: ["title", "time", "steps"],
         properties: {
           title: { type: "string", description: "e.g. Morning Routine, Evening Routine" },
-          time: { type: "string", description: "HH:MM format, derived from wake or sleep time" },
+          time: {
+            anyOf: [{ type: "string", description: "HH:MM format" }, { type: "null" }],
+          },
           steps: {
             type: "array",
             minItems: 3,

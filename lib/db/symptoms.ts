@@ -9,6 +9,9 @@ export type SymptomLog = {
   userId: string;
   logId: string;
   timestamp: string;
+  /** YYYY-MM-DD in the user's local timezone. Stored alongside the UTC timestamp
+   *  so logs can be filtered by the user's local date regardless of UTC offset. */
+  localDate?: string;
   symptomType: string;
   severity?: number;
   notes?: string;

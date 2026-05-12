@@ -21,6 +21,7 @@ const LogSchema = z.object({
   severity: z.number().min(0).max(1000).optional(),
   notes: z.string().max(2000).optional(),
   context: z.string().max(500).optional(),
+  localDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
 
 export async function GET() {
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
     userId: session.userId,
     timestamp: new Date().toISOString(),
     symptomType: parsed.data.type,
+    ...(parsed.data.localDate ? { localDate: parsed.data.localDate } : {}),
     ...(parsed.data.severity !== undefined ? { severity: parsed.data.severity } : {}),
     ...(parsed.data.notes ? { notes: parsed.data.notes } : {}),
     ...(parsed.data.context ? { context: parsed.data.context } : {}),

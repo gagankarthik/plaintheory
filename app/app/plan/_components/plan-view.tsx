@@ -84,7 +84,7 @@ export function PlanView({ plan }: { plan: DailyPlan }) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-0.5">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                {new Date(plan.date).toLocaleDateString(undefined, {
+                {new Date(plan.date + "T00:00:00").toLocaleDateString(undefined, {
                   weekday: "long",
                   month: "long",
                   day: "numeric",
