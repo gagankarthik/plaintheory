@@ -38,7 +38,8 @@ export async function POST() {
     });
     await updateSubscription(user.userId, user.subscriptionPlan, "canceling");
 
-    return NextResponse.json({ canceled: true, periodEnd: updated.current_period_end });
+    const periodEnd = updated.items.data[0]?.current_period_end ?? null;
+    return NextResponse.json({ canceled: true, periodEnd });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Stripe error";
     console.error("[billing/cancel]", message);

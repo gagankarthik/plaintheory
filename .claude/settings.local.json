@@ -19,7 +19,10 @@
       "Bash(Select-Object Name)",
       "PowerShell(ls -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
       "PowerShell(ls -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\\\\app\\\\app\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
-      "Bash(xargs grep -l \"stripe\\\\|billing\\\\|subscription\\\\|pricing\\\\|STRIPE\\\\|PRICE\")"
+      "Bash(xargs grep -l \"stripe\\\\|billing\\\\|subscription\\\\|pricing\\\\|STRIPE\\\\|PRICE\")",
+      "Bash(node -e \"const s = require\\('stripe'\\); console.log\\(require\\('./node_modules/stripe/package.json'\\).version\\)\")",
+      "Bash(node -e \"const t = require\\('./node_modules/stripe/types/Subscriptions.d.ts'\\); console.log\\('ok'\\)\")",
+      "Bash(npx next *)"
     ]
   },
   "enabledPlugins": {

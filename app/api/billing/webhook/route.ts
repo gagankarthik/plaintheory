@@ -147,11 +147,10 @@ export async function POST(request: Request) {
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
         const cid = toCustomerId(invoice.customer);
-        if (cid && invoice.subscription) {
+        const subRef = invoice.parent?.subscription_details?.subscription;
+        if (cid && subRef) {
           const sub = await stripe().subscriptions.retrieve(
-            typeof invoice.subscription === "string"
-              ? invoice.subscription
-              : invoice.subscription.id,
+            typeof subRef === "string" ? subRef : subRef.id,
           );
           await handleSubscription(sub, event.id, "invoice.paid");
         }
