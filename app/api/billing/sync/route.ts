@@ -25,17 +25,18 @@ export async function POST() {
       return NextResponse.json({ plan: "free" });
     }
 
+    // Fetch all non-canceled subscriptions — covers active, trialing, and past_due.
     const subscriptions = await stripe().subscriptions.list({
       customer: user.stripeCustomerId,
-      status: "active",
-      limit: 1,
+      limit: 5,
       expand: ["data.items.data.price"],
     });
 
-    const sub = subscriptions.data[0];
+    const sub = subscriptions.data.find(
+      (s) => s.status !== "canceled" && s.status !== "incomplete_expired",
+    );
 
     if (!sub) {
-      // No active subscription — mark as free (handles cancellations too)
       await updateSubscription(user.userId, undefined, "canceled");
       return NextResponse.json({ plan: "free" });
     }

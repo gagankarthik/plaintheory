@@ -35,15 +35,12 @@ function formatPeriod(start: number, end: number): string {
   return `${s} – ${e}`;
 }
 
-function statusVariant(status: string): "success" | "warning" | "destructive" | "outline" {
-  if (status === "paid") return "success";
-  if (status === "open") return "warning";
-  if (status === "uncollectible") return "destructive";
-  return "outline";
+function statusVariant(status: string): "success" | "destructive" {
+  return status === "paid" ? "success" : "destructive";
 }
 
 function statusLabel(status: string): string {
-  return status.charAt(0).toUpperCase() + status.slice(1);
+  return status === "paid" ? "Paid" : "Failed";
 }
 
 function todayIso(): string {

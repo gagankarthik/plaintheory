@@ -49,26 +49,42 @@ export async function GET(request: Request) {
       ...(Object.keys(created).length ? { created } : {}),
     });
 
-    const transactions: Transaction[] = invoices.data.map((inv) => {
-      const line = inv.lines.data[0];
-      const description =
-        line?.description ??
-        inv.description ??
-        "PlainTheory subscription";
+    const transactions: Transaction[] = invoices.data
+      // Only show paid invoices and ones where payment was attempted and failed.
+      .filter((inv) => {
+        if (inv.status === "paid") return true;
+        // open + at least one charge attempt = payment is failing/retrying
+        if (inv.status === "open" && (inv.attempt_count ?? 0) > 0) return true;
+        // all retries exhausted
+        if (inv.status === "uncollectible") return true;
+        return false;
+      })
+      .map((inv) => {
+        const line = inv.lines.data[0];
+        const description =
+          line?.description ??
+          inv.description ??
+          "PlainTheory subscription";
 
-      return {
-        id: inv.id,
-        number: inv.number ?? null,
-        date: inv.created,
-        periodStart: line?.period?.start ?? inv.period_start ?? inv.created,
-        periodEnd: line?.period?.end ?? inv.period_end ?? inv.created,
-        description,
-        amount: inv.amount_paid,
-        currency: inv.currency,
-        status: inv.status ?? "unknown",
-        pdfUrl: inv.invoice_pdf ?? null,
-      };
-    });
+        // Normalise status into paid | failed for the UI
+        const displayStatus =
+          inv.status === "paid"
+            ? "paid"
+            : "failed";
+
+        return {
+          id: inv.id,
+          number: inv.number ?? null,
+          date: inv.created,
+          periodStart: line?.period?.start ?? inv.period_start ?? inv.created,
+          periodEnd: line?.period?.end ?? inv.period_end ?? inv.created,
+          description,
+          amount: inv.status === "paid" ? inv.amount_paid : inv.amount_due,
+          currency: inv.currency,
+          status: displayStatus,
+          pdfUrl: inv.invoice_pdf ?? null,
+        };
+      });
 
     return NextResponse.json({ transactions });
   } catch (err) {

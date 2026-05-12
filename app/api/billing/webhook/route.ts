@@ -30,7 +30,11 @@ async function handleSubscription(
   const cid = toCustomerId(sub.customer);
   if (!cid) return;
 
-  const priceId = sub.items.data[0]?.price.id ?? "";
+  const priceId = sub.items.data[0]?.price?.id;
+  if (!priceId) {
+    console.warn("[webhook] subscription has no price item", sub.id, eventType, eventId);
+    return;
+  }
   const plan = planFromPriceId(priceId);
   const user = await findByStripeCustomerId(cid);
 

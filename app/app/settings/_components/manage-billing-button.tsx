@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 
-export function ManageBillingButton() {
+export function ManageBillingButton({ label = "Manage subscription" }: { label?: string }) {
   const [pending, setPending] = useState(false);
   return (
     <Button
@@ -23,7 +23,7 @@ export function ManageBillingButton() {
         }
       }}
     >
-      Manage subscription
+      {label}
     </Button>
   );
 }

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ManageBillingButton } from "./manage-billing-button";
 import {
   Dialog,
   DialogClose,
@@ -192,6 +193,7 @@ export function BillingSection({
 }) {
   const isActive = !!subscriptionPlan && subscriptionStatus !== "canceled";
   const isCanceling = subscriptionStatus === "canceling";
+  const isPastDue = subscriptionStatus === "past_due";
 
   if (!isActive) {
     return <UpgradePicker />;
@@ -200,15 +202,23 @@ export function BillingSection({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3">
-        <Badge variant="success" className="text-sm px-3 py-1">
+        <Badge variant={isPastDue ? "destructive" : "success"} className="text-sm px-3 py-1">
           {planLabel}
         </Badge>
         {isCanceling ? (
           <Badge variant="warning">Canceling at period end</Badge>
         ) : null}
+        {isPastDue ? (
+          <Badge variant="destructive">Payment failed</Badge>
+        ) : null}
       </div>
 
-      {isCanceling ? (
+      {isPastDue ? (
+        <p className="text-sm text-muted-foreground">
+          Your last payment didn&apos;t go through. Update your payment method to keep your Plus
+          access — Stripe will automatically retry the charge.
+        </p>
+      ) : isCanceling ? (
         <p className="text-sm text-muted-foreground">
           Your subscription is set to cancel at the end of this billing period. You still have full
           Plus access until then.
@@ -220,7 +230,10 @@ export function BillingSection({
         </p>
       )}
 
-      {!isCanceling ? <CancelDialog planLabel={planLabel} /> : null}
+      <div className="flex flex-wrap gap-2">
+        {isPastDue ? <ManageBillingButton label="Update payment method" /> : null}
+        {!isCanceling && !isPastDue ? <CancelDialog planLabel={planLabel} /> : null}
+      </div>
     </div>
   );
 }

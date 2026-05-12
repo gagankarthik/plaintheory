@@ -27,7 +27,8 @@ export async function POST(request: Request) {
   }
 
   const tier = (body as { tier: TierKey; returnTo?: string }).tier;
-  const returnTo = (body as { tier: TierKey; returnTo?: string }).returnTo;
+  const rawReturnTo = (body as { tier: TierKey; returnTo?: string }).returnTo;
+  const returnTo = rawReturnTo === "settings" ? "settings" : undefined;
   const priceId = PRICE_IDS[tier];
   if (!priceId) {
     return NextResponse.json(

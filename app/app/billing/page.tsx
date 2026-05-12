@@ -44,21 +44,28 @@ export default async function BillingPage() {
         limit: 100,
         created: { gte: threeMonthsAgo() },
       });
-      initialTransactions = invoices.data.map((inv) => {
-        const line = inv.lines.data[0];
-        return {
-          id: inv.id,
-          number: inv.number ?? null,
-          date: inv.created,
-          periodStart: line?.period?.start ?? inv.period_start ?? inv.created,
-          periodEnd: line?.period?.end ?? inv.period_end ?? inv.created,
-          description: line?.description ?? inv.description ?? "PlainTheory subscription",
-          amount: inv.amount_paid,
-          currency: inv.currency,
-          status: inv.status ?? "unknown",
-          pdfUrl: inv.invoice_pdf ?? null,
-        };
-      });
+      initialTransactions = invoices.data
+        .filter((inv) => {
+          if (inv.status === "paid") return true;
+          if (inv.status === "open" && (inv.attempt_count ?? 0) > 0) return true;
+          if (inv.status === "uncollectible") return true;
+          return false;
+        })
+        .map((inv) => {
+          const line = inv.lines.data[0];
+          return {
+            id: inv.id,
+            number: inv.number ?? null,
+            date: inv.created,
+            periodStart: line?.period?.start ?? inv.period_start ?? inv.created,
+            periodEnd: line?.period?.end ?? inv.period_end ?? inv.created,
+            description: line?.description ?? inv.description ?? "PlainTheory subscription",
+            amount: inv.status === "paid" ? inv.amount_paid : inv.amount_due,
+            currency: inv.currency,
+            status: inv.status === "paid" ? "paid" : "failed",
+            pdfUrl: inv.invoice_pdf ?? null,
+          };
+        });
     } catch {
       // Non-fatal — client will show empty state and can retry via filter.
     }

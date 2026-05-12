@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { DeleteCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { ddb, getTableName } from "./client";
 import {
@@ -46,6 +46,7 @@ export async function listHabits(userId: string): Promise<Habit[]> {
     new QueryCommand({
       TableName: getTableName(),
       KeyConditionExpression: "PK = :pk AND begins_with(SK, :prefix)",
+      FilterExpression: "attribute_not_exists(archivedAt)",
       ExpressionAttributeValues: {
         ":pk": userScopePK(userId),
         ":prefix": habitPrefix,
@@ -57,9 +58,11 @@ export async function listHabits(userId: string): Promise<Habit[]> {
 
 export async function archiveHabit(userId: string, habitId: string): Promise<void> {
   await ddb.send(
-    new DeleteCommand({
+    new UpdateCommand({
       TableName: getTableName(),
       Key: habitKey(userId, habitId),
+      UpdateExpression: "SET archivedAt = :now",
+      ExpressionAttributeValues: { ":now": new Date().toISOString() },
     }),
   );
 }

@@ -8,6 +8,8 @@ import { getCurrentUser, clearSessionCookie } from "@/lib/auth/session";
 import { ensureUser, getUser } from "@/lib/db/user";
 import { SessionRefresher } from "@/components/session-refresher";
 
+import { PaymentFailedBanner } from "@/components/payment-failed-banner";
+
 import { AppNav } from "./_components/app-nav";
 import { BottomNav } from "./_components/bottom-nav";
 import { UserMenu } from "./_components/user-menu";
@@ -17,6 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!session) redirect("/sign-in");
 
   let userEmail = session.email;
+  let subscriptionStatus: string | undefined;
   try {
     let user = await getUser(session.userId);
     if (!user) {
@@ -31,6 +34,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       redirect("/onboarding");
     }
     userEmail = user.email;
+    subscriptionStatus = user.subscriptionStatus ?? undefined;
   } catch (err) {
     if (err instanceof Error && err.message.includes("NEXT_REDIRECT")) {
       throw err;
@@ -41,6 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="relative flex min-h-dvh flex-col">
+      {subscriptionStatus === "past_due" ? <PaymentFailedBanner /> : null}
       <header className="sticky top-0 z-30 border-b border-border/40 bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-3 py-2.5 sm:gap-4 sm:px-6 sm:py-3">
           <Link href="/app" className="shrink-0">

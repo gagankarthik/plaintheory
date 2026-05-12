@@ -37,6 +37,7 @@ import {
   StaggerChildren,
   StaggerItem,
 } from "./_components/landing-motion";
+import { HeroBackground, SectionDots } from "./_components/landing-bg";
 
 export const metadata: Metadata = {
   title: "PlainTheory — A calm daily coaching companion",
@@ -95,13 +96,7 @@ export default async function LandingPage() {
       <main className="flex-1">
         {/* HERO with mock preview */}
         <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16 lg:pt-24">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 -top-32 -z-10 mx-auto h-[600px] max-w-5xl"
-          >
-            <div className="absolute left-1/4 top-0 size-72 rounded-full bg-primary/10 blur-3xl" />
-            <div className="absolute right-1/4 top-24 size-80 rounded-full bg-info/10 blur-3xl" />
-          </div>
+          <HeroBackground />
           <div className="mx-auto max-w-3xl text-center">
             <FadeIn>
               <Badge variant="primary" className="mb-5 sm:mb-6">
@@ -282,7 +277,8 @@ export default async function LandingPage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section id="how" className="border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24">
+        <section id="how" className="relative border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24">
+          <SectionDots />
           <div className="mx-auto max-w-5xl space-y-10 sm:space-y-12">
             <FadeIn className="text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -345,8 +341,9 @@ export default async function LandingPage() {
         {/* FEATURES */}
         <section
           id="features"
-          className="border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24"
+          className="relative border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24"
         >
+          <SectionDots />
           <div className="mx-auto max-w-5xl space-y-10">
             <FadeIn className="text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -425,7 +422,8 @@ export default async function LandingPage() {
         </section>
 
         {/* TESTIMONIALS */}
-        <section className="border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24">
+        <section className="relative border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24">
+          <SectionDots />
           <div className="mx-auto max-w-5xl space-y-10">
             <FadeIn className="text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -499,9 +497,14 @@ export default async function LandingPage() {
         </section>
 
         {/* FINAL CTA */}
-        <section className="px-4 py-20 sm:px-6 sm:py-24">
+        <section className="relative px-4 py-20 sm:px-6 sm:py-24">
+          <SectionDots />
           <FadeIn>
-            <div className="mx-auto max-w-3xl overflow-hidden rounded-3xl border border-border/60 bg-gradient-to-br from-primary/10 via-card to-card px-6 py-12 text-center shadow-[0_1px_3px_0_rgb(0_0_0_/_0.03),0_20px_40px_-20px_rgb(0_0_0_/_0.08)] sm:px-10 sm:py-16">
+            <div className="relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/12 via-card to-info/6 px-6 py-12 text-center shadow-[0_1px_3px_0_rgb(0_0_0_/_0.03),0_20px_60px_-20px_rgb(0_0_0_/_0.12)] sm:px-10 sm:py-16">
+              <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+                <div className="absolute -right-16 -top-16 size-48 rounded-full bg-primary/10 blur-3xl dark:bg-primary/8" />
+                <div className="absolute -bottom-16 -left-16 size-56 rounded-full bg-info/8 blur-3xl dark:bg-info/6" />
+              </div>
               <Calendar className="mx-auto mb-4 size-6 text-primary" />
               <h2 className="font-serif text-2xl tracking-tight sm:text-3xl">
                 {signedIn
