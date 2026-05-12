@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
+import { CookieConsent } from "@/components/cookie-consent";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AmplifyProvider } from "@/lib/auth/amplify-provider";
@@ -105,6 +106,7 @@ export default function RootLayout({
           <AmplifyProvider>
             <div className="relative isolate flex min-h-dvh flex-col">{children}</div>
             <Toaster />
+            <CookieConsent />
           </AmplifyProvider>
         </ThemeProvider>
       </body>

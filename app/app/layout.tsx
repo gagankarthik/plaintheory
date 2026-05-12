@@ -38,16 +38,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <Link href="/app" className="shrink-0">
             <LogoWithWordmark />
           </Link>
-          <div className="hidden min-w-0 flex-1 md:block">
+          <div className="hidden min-w-0 flex-1 lg:block">
             <AppNav />
           </div>
-          <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-2 md:flex-none">
+          <div className="flex flex-1 items-center justify-end gap-1.5 sm:gap-2 lg:flex-none">
             <ThemeToggle />
             <UserMenu email={userEmail} />
           </div>
         </div>
       </header>
-      <main className="flex-1 pb-20 md:pb-0">{children}</main>
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-2 focus:top-2 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
+      >
+        Skip to content
+      </a>
+      <main id="main" className="flex-1 pb-24 lg:pb-0">{children}</main>
       <BottomNav />
     </div>
   );
