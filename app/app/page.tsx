@@ -224,8 +224,8 @@ export default async function AppHome() {
             </CardContent>
           </Card>
 
-          {/* Today's Routines */}
-          {plan?.routines && plan.routines.length > 0 ? (
+          {/* Today's Routines — Plus only */}
+          {isPlusUser(user) && plan?.routines && plan.routines.length > 0 ? (
             <Card className="border-border/60">
               <CardHeader className="px-6 pt-6 pb-3">
                 <div className="flex items-center gap-2">

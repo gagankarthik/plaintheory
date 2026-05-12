@@ -40,12 +40,21 @@ export const metadata: Metadata = {
     description:
       "Gentle morning plans, a coach that knows you, and a quiet weekly review of what's working.",
     locale: "en_US",
+    images: [
+      {
+        url: `${SITE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: "PlainTheory — A calm daily coaching companion",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "PlainTheory — A calm daily coaching companion",
     description:
       "Gentle morning plans, a coach that knows you, and a quiet weekly review of what's working.",
+    images: [`${SITE_URL}/og-image.png`],
   },
   robots: {
     index: true,
@@ -87,7 +96,7 @@ export default function RootLayout({
       "@type": "Organization",
       name: "PlainTheory",
       url: SITE_URL,
-      logo: `${SITE_URL}/icon.svg`,
+      logo: `${SITE_URL}/icon-512.png`,
       sameAs: [],
     },
     {
