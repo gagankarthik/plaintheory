@@ -54,6 +54,48 @@ export function computeStreak(logs: Log[]): number {
   return count;
 }
 
+/** Consecutive days with a fully completed daily plan (all actions done). */
+export function computePlanStreak(plans: DailyPlan[]): number {
+  const completedDates = new Set(
+    plans
+      .filter(
+        (p) =>
+          p.focusActions.length > 0 &&
+          (p.completedActionIds?.length ?? 0) === p.focusActions.length,
+      )
+      .map((p) => p.date),
+  );
+  let count = 0;
+  for (let i = 0; i < 90; i++) {
+    const iso = new Date(Date.now() - i * DAY_MS).toISOString().slice(0, 10);
+    if (completedDates.has(iso)) count++;
+    else if (i > 0) break;
+  }
+  return count;
+}
+
+/** Longest streak across all habit completions (given as an array of {habitId, date} objects). */
+export function computeBestHabitStreak(
+  completions: Array<{ habitId: string; date: string }>,
+): number {
+  const byHabit = new Map<string, Set<string>>();
+  for (const c of completions) {
+    if (!byHabit.has(c.habitId)) byHabit.set(c.habitId, new Set());
+    byHabit.get(c.habitId)!.add(c.date);
+  }
+  let best = 0;
+  for (const dates of byHabit.values()) {
+    let count = 0;
+    for (let i = 0; i < 365; i++) {
+      const iso = new Date(Date.now() - i * DAY_MS).toISOString().slice(0, 10);
+      if (dates.has(iso)) count++;
+      else if (i > 0) break;
+    }
+    if (count > best) best = count;
+  }
+  return best;
+}
+
 export function computeBadges(logs: Log[], plans: DailyPlan[]): Badge[] {
   const earned: Badge[] = [];
   const days = uniqueDays(logs);

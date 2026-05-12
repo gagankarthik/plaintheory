@@ -8,6 +8,7 @@ import { getUser } from "@/lib/db/user";
 
 import { DeleteAccountButton } from "./_components/delete-account-button";
 import { ManageBillingButton } from "./_components/manage-billing-button";
+import { NotificationsSettings } from "./_components/notifications-settings";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export default async function SettingsPage() {
           <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
             Settings
           </p>
-          <h1 className="font-serif text-3xl tracking-tight">Account</h1>
+          <h1 className="font-serif text-3xl tracking-tight">Settings</h1>
           <p className="text-sm text-muted-foreground">{email}</p>
         </div>
       </header>
@@ -57,6 +58,18 @@ export default async function SettingsPage() {
             value={user?.stripeCustomerId ? "Plus" : "Free"}
           />
           <Stat label="Region" value={user?.onboarding.region ?? "—"} />
+        </CardContent>
+      </Card>
+
+      <Card className="border-border/60">
+        <CardHeader className="px-6 pt-6 pb-2">
+          <CardTitle className="text-lg">Notifications</CardTitle>
+          <CardDescription>
+            Choose how PlainTheory stays in touch. You can change these anytime.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="px-6 pb-6">
+          <NotificationsSettings initial={user?.onboarding.notifications} />
         </CardContent>
       </Card>
 

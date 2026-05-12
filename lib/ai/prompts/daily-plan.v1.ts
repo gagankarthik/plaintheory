@@ -9,7 +9,7 @@
 
 import type { Condition } from "@/lib/conditions";
 
-export const DAILY_PLAN_PROMPT_VERSION = "daily-plan.v1";
+export const DAILY_PLAN_PROMPT_VERSION = "daily-plan.v2";
 
 export type DailyPlanContext = {
   date: string;
@@ -28,7 +28,7 @@ export type DailyPlanContext = {
 export const DAILY_PLAN_SCHEMA: Record<string, unknown> = {
   type: "object",
   additionalProperties: false,
-  required: ["morningBriefing", "focusActions", "watchFor", "reflectionPrompts"],
+  required: ["morningBriefing", "focusActions", "routines", "watchFor", "reflectionPrompts"],
   properties: {
     morningBriefing: {
       type: "string",
@@ -49,6 +49,27 @@ export const DAILY_PLAN_SCHEMA: Record<string, unknown> = {
             enum: ["food", "movement", "hydration", "medication", "stress", "sleep"],
           },
           text: { type: "string" },
+        },
+      },
+    },
+    routines: {
+      type: "array",
+      minItems: 2,
+      maxItems: 2,
+      description: "Exactly one morning routine and one evening routine, each with concrete steps tailored to the user's schedule and focus areas.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["title", "steps"],
+        properties: {
+          title: { type: "string", description: "e.g. Morning Routine, Evening Routine" },
+          time: { type: "string", description: "HH:MM format, derived from wake or sleep time" },
+          steps: {
+            type: "array",
+            minItems: 3,
+            maxItems: 5,
+            items: { type: "string" },
+          },
         },
       },
     },
@@ -80,7 +101,7 @@ Hard rules — never violate:
 4. No diet or fitness prescriptions framed as "you must" — coaching is suggestions, not orders.
 5. Tone: warm, plain language, present tense, concrete. Avoid hedging clichés ("just listen to your body"). Avoid jargon.
 
-Output the JSON schema exactly. focusActions are 3–5 specific, doable today. watchFor is one pattern to notice. reflectionPrompts are three short evening questions.
+Output the JSON schema exactly. focusActions are 3–5 specific, doable today. routines are exactly two entries — one Morning Routine and one Evening Routine — each with 3–5 concrete steps timed to the user's wake/sleep schedule. watchFor is one pattern to notice. reflectionPrompts are three short evening questions.
 
 User's focus areas (the wellness topics they picked):
 ${context.focusAreas

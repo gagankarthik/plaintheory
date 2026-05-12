@@ -1,8 +1,10 @@
-import { ArrowRight, MessageCircle, NotebookPen, TrendingUp } from "lucide-react";
+import { ArrowRight, CalendarDays, MessageCircle, NotebookPen, TrendingUp } from "lucide-react";
 import Link from "next/link";
 
+import { ActivityRings } from "@/components/widgets/activity-rings";
 import { BadgesRow } from "@/components/widgets/badges-row";
 import { MoodFace } from "@/components/widgets/mood-face";
+import { StreaksCard } from "@/components/widgets/streaks-card";
 import { WaterBottle } from "@/components/widgets/water-bottle";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -16,14 +18,31 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { generateDailyPlan } from "@/lib/ai/daily-plan";
-import { computeBadges, computeStreak, encouragement } from "@/lib/achievements";
+import {
+  computeBadges,
+  computeBestHabitStreak,
+  computePlanStreak,
+  computeStreak,
+  encouragement,
+} from "@/lib/achievements";
 import { getCurrentUser } from "@/lib/auth/session";
 import { CONDITIONS, GOALS } from "@/lib/onboarding/options";
+import { getLocalDate } from "@/lib/date";
 import { getPlan, listPlans } from "@/lib/db/plans";
+import { listHabits, listHabitCompletions } from "@/lib/db/habits";
 import { listSymptomLogs } from "@/lib/db/symptoms";
 import { getUser } from "@/lib/db/user";
 
 export const dynamic = "force-dynamic";
+
+const CATEGORY_EMOJI: Record<string, string> = {
+  food: "🥗",
+  movement: "🏃",
+  hydration: "💧",
+  medication: "💊",
+  stress: "🧘",
+  sleep: "😴",
+};
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -33,10 +52,6 @@ function greeting(): string {
   return "A quiet night";
 }
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export default async function AppHome() {
   const session = await getCurrentUser();
   if (!session) return null;
@@ -44,7 +59,7 @@ export default async function AppHome() {
   const user = await getUser(session.userId);
   if (!user) return null;
 
-  const date = today();
+  const date = await getLocalDate();
   let plan = await getPlan(session.userId, date);
   let planError: string | null = null;
   if (!plan) {
@@ -55,11 +70,18 @@ export default async function AppHome() {
     }
   }
 
-  const [recentLogs, allLogs, recentPlans] = await Promise.all([
-    listSymptomLogs(session.userId, { limit: 5 }),
-    listSymptomLogs(session.userId, { limit: 500 }),
-    listPlans(session.userId, { limit: 30 }),
-  ]);
+  // Fetch 60 days of habit completions to compute best streak accurately
+  const sixtyDaysAgo = new Date(Date.now() - 60 * 86_400_000).toISOString().slice(0, 10);
+
+  const [recentLogs, allLogs, recentPlans, habits, habitCompletions, allHabitCompletions] =
+    await Promise.all([
+      listSymptomLogs(session.userId, { limit: 5 }),
+      listSymptomLogs(session.userId, { limit: 500 }),
+      listPlans(session.userId, { limit: 30 }),
+      listHabits(session.userId),
+      listHabitCompletions(session.userId, { from: date, to: date }),
+      listHabitCompletions(session.userId, { from: sixtyDaysAgo, to: date }),
+    ]);
 
   const todayLogs = allLogs.filter((l) => l.timestamp.startsWith(date));
   const waterToday = todayLogs.filter((l) => l.symptomType === "water").length;
@@ -67,10 +89,12 @@ export default async function AppHome() {
   const latestMoodLog = recentLogs.find((l) => l.symptomType === "mood");
   const moodRating = latestMoodLog?.severity ?? null;
 
-  const planDone =
-    plan != null &&
-    plan.focusActions.length > 0 &&
-    (plan.completedActionIds?.length ?? 0) === plan.focusActions.length;
+  const completedCount = plan?.completedActionIds?.length ?? 0;
+  const totalActions = plan?.focusActions.length ?? 0;
+  const planDone = plan != null && totalActions > 0 && completedCount === totalActions;
+
+  const activeHabits = habits.filter((h) => !h.archivedAt);
+  const habitsDoneToday = habitCompletions.filter((c) => c.date === date).length;
 
   const firstName = (user.email.split("@")[0] ?? "there")
     .split(/[.\-_]/)[0]
@@ -84,18 +108,18 @@ export default async function AppHome() {
     .filter(Boolean) as string[];
 
   const streakDays = computeStreak(allLogs);
-
+  const planStreak = computePlanStreak(recentPlans);
+  const bestHabitStreak = computeBestHabitStreak(allHabitCompletions);
   const message = encouragement({
     streak: streakDays,
     todayLogs: todayLogs.length,
     planDone,
     hydration: { glasses: waterToday, target: hydrationTarget },
   });
-
   const badges = computeBadges(allLogs, recentPlans);
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+    <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
       {/* Greeting */}
       <section className="flex items-start gap-4">
         <Avatar seed={user.email} size={56} className="size-14 shrink-0 sm:size-16" />
@@ -123,114 +147,198 @@ export default async function AppHome() {
         </div>
       </section>
 
-      {/* Hydration + mood */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <WaterBottle initialGlasses={waterToday} target={hydrationTarget} />
-        <MoodFace rating={moodRating} />
-      </div>
-
-      {/* Today + quick log */}
+      {/* Main layout: coach content + rings sidebar */}
       <div className="grid gap-5 lg:grid-cols-3">
-        <Card className="border-border/60 lg:col-span-2">
-          <CardHeader className="space-y-1 px-6 pt-6 pb-2">
-            <div className="flex items-center justify-between">
-              <CardDescription className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Today
-              </CardDescription>
-              <Link href="/app/plan">
-                <Button variant="ghost" size="sm">
-                  Open <ArrowRight className="size-3" />
-                </Button>
-              </Link>
-            </div>
-            <CardTitle className="font-serif text-xl">
-              {planDone
-                ? "All three actions done — that's a full day."
-                : plan
-                  ? "Your plan is ready."
-                  : planError
-                    ? "Plan unavailable."
-                    : "Generating…"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 px-6 pb-6">
-            {plan ? (
-              <>
-                <p className="text-sm leading-relaxed text-foreground">
-                  {plan.morningBriefing}
+        {/* Left: today's coach content */}
+        <div className="space-y-5 lg:col-span-2">
+          {/* Today's Plan */}
+          <Card className="border-border/60 shadow-[0_1px_3px_0_rgb(0_0_0_/_0.04),0_24px_48px_-24px_rgb(0_0_0_/_0.08)]">
+            <CardHeader className="space-y-1 px-6 pt-6 pb-2">
+              <div className="flex items-center justify-between">
+                <CardDescription className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  Today · {new Date().toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                </CardDescription>
+                <Link href="/app/plan">
+                  <Button variant="ghost" size="sm">
+                    Full plan <ArrowRight className="size-3" />
+                  </Button>
+                </Link>
+              </div>
+              <CardTitle className="font-serif text-xl">
+                {planDone
+                  ? "All done — that's a full day."
+                  : plan
+                    ? "Your plan is ready."
+                    : planError
+                      ? "Plan unavailable."
+                      : "Generating…"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 px-6 pb-6">
+              {plan ? (
+                <>
+                  <p className="text-sm leading-relaxed text-foreground">{plan.morningBriefing}</p>
+                  <ul className="space-y-2">
+                    {plan.focusActions.map((a) => {
+                      const done = plan?.completedActionIds?.includes(a.id) ?? false;
+                      return (
+                        <li key={a.id} className="flex items-start gap-2.5 text-sm">
+                          <span className="mt-0.5 text-base leading-none">
+                            {CATEGORY_EMOJI[a.category] ?? "·"}
+                          </span>
+                          <span className={done ? "text-muted-foreground line-through" : "text-foreground"}>
+                            {a.text}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {totalActions > 0 ? (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{completedCount} of {totalActions} done</span>
+                        <span>{Math.round((completedCount / totalActions) * 100)}%</span>
+                      </div>
+                      <div className="h-1.5 overflow-hidden rounded-full bg-border/60">
+                        <div
+                          className="h-full rounded-full bg-primary transition-all duration-700"
+                          style={{ width: `${Math.round((completedCount / totalActions) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
+                </>
+              ) : planError ? (
+                <p className="text-sm text-muted-foreground">
+                  {planError}. Check the OpenAI key in your env, then refresh.
                 </p>
-                <ul className="space-y-1.5 text-sm text-muted-foreground">
-                  {plan.focusActions.slice(0, 3).map((a) => {
-                    const done = plan?.completedActionIds?.includes(a.id) ?? false;
+              ) : null}
+            </CardContent>
+          </Card>
+
+          {/* Today's Routines */}
+          {plan?.routines && plan.routines.length > 0 ? (
+            <Card className="border-border/60">
+              <CardHeader className="px-6 pt-6 pb-3">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="size-4 text-muted-foreground" />
+                  <CardDescription className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Today&rsquo;s Routines
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="grid gap-5 px-6 pb-6 sm:grid-cols-2">
+                {plan.routines.map((routine) => (
+                  <div key={routine.title} className="space-y-2.5">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-sm text-foreground">{routine.title}</p>
+                      {routine.time ? (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                          {routine.time}
+                        </span>
+                      ) : null}
+                    </div>
+                    <ol className="space-y-1.5">
+                      {routine.steps.map((step, i) => (
+                        <li key={i} className="flex gap-2 text-sm text-muted-foreground">
+                          <span className="shrink-0 font-medium text-foreground/50">{i + 1}.</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {/* Quick shortcuts */}
+          <div className="grid gap-3 sm:grid-cols-3">
+            <ShortcutCard
+              href="/app/chat"
+              icon={<MessageCircle className="size-5" />}
+              title="Coach chat"
+              description="Ask about meals, focus, sleep, mood."
+            />
+            <ShortcutCard
+              href="/app/log"
+              icon={<NotebookPen className="size-5" />}
+              title="New log"
+              description="Mood, energy, focus, or sleep."
+            />
+            <ShortcutCard
+              href="/app/insights"
+              icon={<TrendingUp className="size-5" />}
+              title="Weekly insights"
+              description="Charts and what's been working."
+            />
+          </div>
+        </div>
+
+        {/* Right sidebar */}
+        <div className="space-y-4">
+          {/* Water — top for easy daily logging */}
+          <WaterBottle key={date} initialGlasses={waterToday} target={hydrationTarget} />
+
+          {/* Activity rings */}
+          <ActivityRings
+            hydration={{ value: waterToday, target: hydrationTarget }}
+            checkIns={{ value: todayLogs.length, target: 3 }}
+            planActions={{ value: completedCount, target: totalActions || 1 }}
+          />
+
+          {/* Streaks */}
+          <StreaksCard
+            checkInStreak={streakDays}
+            planStreak={planStreak}
+            bestHabitStreak={bestHabitStreak}
+          />
+
+          {/* Habits today */}
+          {activeHabits.length > 0 ? (
+            <Card className="border-border/60">
+              <CardContent className="space-y-3 px-5 py-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Habits today
+                  </p>
+                  <Link href="/app/habits">
+                    <Button variant="ghost" size="sm" className="h-6 text-xs">
+                      All <ArrowRight className="size-2.5" />
+                    </Button>
+                  </Link>
+                </div>
+                <div className="flex items-baseline gap-1.5">
+                  <span className="font-serif text-3xl">{habitsDoneToday}</span>
+                  <span className="text-sm text-muted-foreground">/ {activeHabits.length} done</span>
+                </div>
+                <div className="space-y-1.5">
+                  {activeHabits.slice(0, 4).map((h) => {
+                    const done = habitCompletions.some((c) => c.habitId === h.habitId);
                     return (
-                      <li key={a.id} className="flex gap-2">
-                        <span className={done ? "text-success" : "text-primary"}>·</span>
-                        <span className={done ? "line-through" : ""}>{a.text}</span>
-                      </li>
+                      <div key={h.habitId} className="flex items-center gap-2 text-sm">
+                        <span
+                          className={`size-2 shrink-0 rounded-full ${done ? "bg-success" : "bg-border"}`}
+                        />
+                        <span className={done ? "text-muted-foreground line-through" : "text-foreground"}>
+                          {h.name}
+                        </span>
+                      </div>
                     );
                   })}
-                </ul>
-              </>
-            ) : planError ? (
-              <p className="text-sm text-muted-foreground">
-                {planError}. Check the OpenAI key in your env, then refresh.
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
+                  {activeHabits.length > 4 ? (
+                    <p className="text-xs text-muted-foreground pl-4">
+                      +{activeHabits.length - 4} more
+                    </p>
+                  ) : null}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
-        <Card className="border-border/60">
-          <CardHeader className="space-y-1 px-6 pt-6 pb-2">
-            <div className="flex items-center justify-between">
-              <CardDescription className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Recent
-              </CardDescription>
-              <Link href="/app/log">
-                <Button variant="ghost" size="sm">
-                  Log <ArrowRight className="size-3" />
-                </Button>
-              </Link>
-            </div>
-            <CardTitle className="font-serif text-xl">Check-ins</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 px-6 pb-6">
-            {recentLogs.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No logs yet. A 10-second check-in builds the pattern.
-              </p>
-            ) : (
-              <ul className="space-y-1.5 text-sm">
-                {recentLogs.map((log) => (
-                  <li key={log.logId} className="flex items-center justify-between">
-                    <span className="capitalize text-foreground">{log.symptomType}</span>
-                    <span className="text-muted-foreground">
-                      {log.severity ? `${log.severity}/5` : "—"}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <ShortcutCard
-          href="/app/chat"
-          icon={<MessageCircle className="size-5" />}
-          title="Coach chat"
-          description="Ask anything — meals, focus, sleep, mood."
-        />
-        <ShortcutCard
-          href="/app/log"
-          icon={<NotebookPen className="size-5" />}
-          title="New log"
-          description="Mood, energy, focus, or sleep in 10 seconds."
-        />
-        <ShortcutCard
-          href="/app/insights"
-          icon={<TrendingUp className="size-5" />}
-          title="Weekly insights"
-          description="Charts, KPIs, and what's been working."
-        />
+          {/* Mood */}
+          <MoodFace rating={moodRating} />
+        </div>
       </div>
 
       {/* Badges */}

@@ -82,6 +82,7 @@ export const onboardingPatchSchema = z.object({
   step: z
     .enum([
       "about-you",
+      "body",
       "conditions",
       "medications",
       "routine",

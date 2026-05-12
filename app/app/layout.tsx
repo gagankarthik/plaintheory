@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { LogoWithWordmark } from "@/components/brand/logo";
+import { DaySync } from "@/components/day-sync";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getCurrentUser } from "@/lib/auth/session";
 import { ensureUser, getUser } from "@/lib/db/user";
@@ -55,6 +56,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </a>
       <main id="main" className="flex-1 pb-24 lg:pb-0">{children}</main>
       <BottomNav />
+      <DaySync />
     </div>
   );
 }

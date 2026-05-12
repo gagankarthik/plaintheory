@@ -23,7 +23,11 @@ export async function POST(request: Request) {
   ) {
     return NextResponse.json({ error: "missing content" }, { status: 400 });
   }
-  const { content, threadId } = body as { content: string; threadId?: string };
+  const { content, threadId, mode } = body as {
+    content: string;
+    threadId?: string;
+    mode?: "coach" | "mood";
+  };
   if (content.trim().length === 0) {
     return NextResponse.json({ error: "empty message" }, { status: 400 });
   }
@@ -32,7 +36,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = await sendChatMessage(session.userId, content, threadId ? { threadId } : {});
+    const result = await sendChatMessage(session.userId, content, {
+      ...(threadId ? { threadId } : {}),
+      ...(mode ? { mode } : {}),
+    });
     if (result.kind === "crisis") {
       return NextResponse.json({ kind: "crisis" });
     }

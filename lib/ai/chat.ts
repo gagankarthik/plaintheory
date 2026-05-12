@@ -5,7 +5,7 @@ import { getUser } from "@/lib/db/user";
 
 import { openaiProvider } from "./openai";
 import { looksEmergency } from "./crisis";
-import { buildChatSystemPrompt, CHAT_PROMPT_VERSION } from "./prompts/chat.v1";
+import { buildChatSystemPrompt, CHAT_PROMPT_VERSION, type ChatMode } from "./prompts/chat.v1";
 
 const FREE_TIER_DAILY_LIMIT = 5;
 
@@ -21,7 +21,7 @@ function todayKey(): string {
 export async function sendChatMessage(
   userId: string,
   content: string,
-  options: { threadId?: string } = {},
+  options: { threadId?: string; mode?: ChatMode } = {},
 ): Promise<SendResult> {
   if (looksEmergency(content)) {
     return { kind: "crisis" };
@@ -46,6 +46,7 @@ export async function sendChatMessage(
     ...(user.onboarding.wakeTime ? { wakeTime: user.onboarding.wakeTime } : {}),
     ...(user.onboarding.sleepTime ? { sleepTime: user.onboarding.sleepTime } : {}),
     ...(user.onboarding.medications ? { dietaryNotes: user.onboarding.medications } : {}),
+    ...(options.mode ? { mode: options.mode } : {}),
   });
 
   let threadId = options.threadId;

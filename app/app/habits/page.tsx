@@ -1,4 +1,5 @@
 import { getCurrentUser } from "@/lib/auth/session";
+import { getLocalDate } from "@/lib/date";
 import { listHabits, listHabitCompletions } from "@/lib/db/habits";
 
 import { HabitsView } from "./_components/habits-view";
@@ -8,6 +9,8 @@ export const dynamic = "force-dynamic";
 export default async function HabitsPage() {
   const session = await getCurrentUser();
   if (!session) return null;
+
+  const date = await getLocalDate();
 
   const [habits, completions] = await Promise.all([
     listHabits(session.userId),
@@ -25,7 +28,7 @@ export default async function HabitsPage() {
           One repeatable action per habit. Mark it done — see the streak compound.
         </p>
       </div>
-      <HabitsView initialHabits={habits} initialCompletions={completions} />
+      <HabitsView key={date} initialHabits={habits} initialCompletions={completions} />
     </div>
   );
 }

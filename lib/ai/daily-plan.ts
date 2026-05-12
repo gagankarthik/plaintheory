@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import { getConditions } from "@/lib/conditions";
-import { savePlan, type DailyPlan, type FocusAction } from "@/lib/db/plans";
+import { savePlan, type DailyPlan, type DailyRoutine, type FocusAction } from "@/lib/db/plans";
 import { getUser } from "@/lib/db/user";
 
 import { openaiProvider } from "./openai";
@@ -14,6 +14,7 @@ import {
 type DailyPlanOutput = {
   morningBriefing: string;
   focusActions: Array<{ id: string; category: FocusAction["category"]; text: string }>;
+  routines?: Array<{ title: string; time?: string; steps: string[] }>;
   watchFor: string;
   reflectionPrompts: string[];
 };
@@ -68,6 +69,12 @@ export async function generateDailyPlan(userId: string, date: string): Promise<D
     text: a.text,
   }));
 
+  const routines: DailyRoutine[] | undefined = output.routines?.map((r) => ({
+    title: r.title,
+    ...(r.time ? { time: r.time } : {}),
+    steps: r.steps,
+  }));
+
   const plan: DailyPlan = {
     userId,
     date,
@@ -76,6 +83,7 @@ export async function generateDailyPlan(userId: string, date: string): Promise<D
     promptVersion: DAILY_PLAN_PROMPT_VERSION,
     morningBriefing: output.morningBriefing,
     focusActions,
+    ...(routines?.length ? { routines } : {}),
     watchFor: output.watchFor,
     reflectionPrompts: output.reflectionPrompts,
   };

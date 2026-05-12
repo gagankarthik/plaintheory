@@ -9,6 +9,12 @@ export type FocusAction = {
   text: string;
 };
 
+export type DailyRoutine = {
+  title: string;
+  time?: string;
+  steps: string[];
+};
+
 export type DailyPlan = {
   userId: string;
   date: string;
@@ -17,6 +23,7 @@ export type DailyPlan = {
   promptVersion: string;
   morningBriefing: string;
   focusActions: FocusAction[];
+  routines?: DailyRoutine[];
   watchFor: string;
   reflectionPrompts: string[];
   guardrailsTriggered?: string[];

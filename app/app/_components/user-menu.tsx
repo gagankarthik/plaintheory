@@ -73,11 +73,11 @@ export function UserMenu({ email }: { email: string }) {
             </div>
           </div>
           <ul className="p-1.5">
-            <MenuItem href="/app/settings" icon={<User className="size-4" />} onSelect={() => setOpen(false)}>
+            <MenuItem href="/app/profile" icon={<User className="size-4" />} onSelect={() => setOpen(false)}>
               Profile
             </MenuItem>
             <MenuItem
-              href="/app/settings#goals"
+              href="/app/goals"
               icon={<Target className="size-4" />}
               onSelect={() => setOpen(false)}
             >

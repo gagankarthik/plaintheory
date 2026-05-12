@@ -14,10 +14,10 @@ export default async function ChatPage() {
   const region = user?.onboarding.region ?? null;
 
   return (
-    <div className="mx-auto w-full max-w-2xl space-y-4 px-4 py-8 sm:px-6">
+    <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-8 sm:px-6">
       <div className="space-y-1">
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Chat</p>
-        <h1 className="font-serif text-3xl tracking-tight">A calm coach, ready when you are.</h1>
+        <h1 className="font-serif text-3xl tracking-tight">Your coach, ready when you are.</h1>
       </div>
       <ChatView
         initialThreadId={threads[0]?.threadId ?? null}

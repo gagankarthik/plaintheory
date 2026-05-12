@@ -645,7 +645,7 @@ const FEATURES = [
   },
   {
     icon: <Repeat className="size-5" />,
-    title: "Apple-style achievements",
+    title: "Achievements and streaks",
     description:
       "Earn calm badges. See streaks. Notice when you slip — without guilt.",
   },

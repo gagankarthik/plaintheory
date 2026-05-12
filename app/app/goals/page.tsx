@@ -18,10 +18,10 @@ export default async function GoalsPage() {
       <header className="space-y-1">
         <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Goals</p>
         <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">
-          What you&rsquo;re working toward.
+          Your goals & preferences.
         </h1>
         <p className="text-sm text-muted-foreground">
-          Change focus areas, goals, or dietary notes anytime — coaching adapts immediately.
+          Update your focus areas, goals, schedule, and diet anytime — the coach adapts immediately.
         </p>
       </header>
 

@@ -2,16 +2,13 @@ import { redirect } from "next/navigation";
 
 import { generateDailyPlan } from "@/lib/ai/daily-plan";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getLocalDate } from "@/lib/date";
 import { getPlan } from "@/lib/db/plans";
 import { getUser } from "@/lib/db/user";
 
 import { PlanView } from "./_components/plan-view";
 
 export const dynamic = "force-dynamic";
-
-function todayISO(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default async function PlanPage() {
   const session = await getCurrentUser();
@@ -20,7 +17,7 @@ export default async function PlanPage() {
   const user = await getUser(session.userId);
   if (!user || user.onboarding.step !== "complete") redirect("/onboarding");
 
-  const date = todayISO();
+  const date = await getLocalDate();
   let plan = await getPlan(session.userId, date);
   let error: string | null = null;
 
@@ -39,7 +36,7 @@ export default async function PlanPage() {
           Couldn&rsquo;t generate today&rsquo;s plan. {error}
         </div>
       ) : null}
-      {plan ? <PlanView plan={plan} /> : null}
+      {plan ? <PlanView key={plan.date} plan={plan} /> : null}
     </div>
   );
 }
