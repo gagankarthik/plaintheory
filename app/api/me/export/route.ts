@@ -8,6 +8,14 @@ import { userScopePK } from "@/lib/db/keys";
 
 export const runtime = "nodejs";
 
+const INTERNAL_KEYS = new Set(["PK", "SK", "GSI1PK", "GSI1SK"]);
+
+function stripInternalKeys(item: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(item).filter(([k]) => !INTERNAL_KEYS.has(k)),
+  );
+}
+
 export async function GET() {
   const session = await getCurrentUser();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -23,7 +31,9 @@ export async function GET() {
         ...(lastKey ? { ExclusiveStartKey: lastKey } : {}),
       }),
     );
-    items.push(...(res.Items ?? []));
+    for (const item of res.Items ?? []) {
+      items.push(stripInternalKeys(item));
+    }
     lastKey = res.LastEvaluatedKey;
   } while (lastKey);
 

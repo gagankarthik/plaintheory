@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { LogoWithWordmark } from "@/components/brand/logo";
 import { DaySync } from "@/components/day-sync";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { getCurrentUser } from "@/lib/auth/session";
+import { getCurrentUser, clearSessionCookie } from "@/lib/auth/session";
 import { ensureUser, getUser } from "@/lib/db/user";
+import { SessionRefresher } from "@/components/session-refresher";
 
 import { AppNav } from "./_components/app-nav";
 import { BottomNav } from "./_components/bottom-nav";
@@ -20,6 +21,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     let user = await getUser(session.userId);
     if (!user) {
       user = await ensureUser(session.userId, session.email);
+    }
+    // Block soft-deleted accounts from accessing the app.
+    if (user.deletedAt) {
+      await clearSessionCookie();
+      redirect("/sign-in");
     }
     if (user.onboarding.step !== "complete") {
       redirect("/onboarding");
@@ -58,6 +64,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <main id="main" className="flex-1 pb-24 lg:pb-0">{children}</main>
       <BottomNav />
       <DaySync />
+      <SessionRefresher />
     </div>
   );
 }

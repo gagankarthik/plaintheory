@@ -1,13 +1,14 @@
 import { getConditions } from "@/lib/conditions";
 import { appendMessage, createThread, listMessages, type ChatMessage } from "@/lib/db/chat";
 import { incrementDailyUsage, UsageLimitExceededError } from "@/lib/db/usage";
-import { getUser } from "@/lib/db/user";
+import { getUser, isPlusUser } from "@/lib/db/user";
 
 import { openaiProvider } from "./openai";
 import { looksEmergency } from "./crisis";
 import { buildChatSystemPrompt, CHAT_PROMPT_VERSION, type ChatMode } from "./prompts/chat.v1";
 
 const FREE_TIER_DAILY_LIMIT = 5;
+const MAX_HISTORY_TURNS = 20;
 
 export type SendResult =
   | { kind: "ok"; threadId: string; user: ChatMessage; assistant: ChatMessage }
@@ -25,17 +26,20 @@ export async function sendChatMessage(
 
   const date = options.date ?? new Date().toISOString().slice(0, 10);
 
-  try {
-    await incrementDailyUsage(userId, date, FREE_TIER_DAILY_LIMIT);
-  } catch (err) {
-    if (err instanceof UsageLimitExceededError) {
-      return { kind: "rate-limited", limit: err.limit };
-    }
-    throw err;
-  }
-
+  // Fetch user first so Plus subscribers bypass the rate limit.
   const user = await getUser(userId);
   if (!user) throw new Error("User not found");
+
+  if (!isPlusUser(user)) {
+    try {
+      await incrementDailyUsage(userId, date, FREE_TIER_DAILY_LIMIT);
+    } catch (err) {
+      if (err instanceof UsageLimitExceededError) {
+        return { kind: "rate-limited", limit: err.limit };
+      }
+      throw err;
+    }
+  }
 
   const conditions = getConditions(user.onboarding.conditions ?? []);
   const system = buildChatSystemPrompt({
@@ -60,7 +64,11 @@ export async function sendChatMessage(
     content,
   });
 
-  const history = options.threadId ? await listMessages(userId, threadId) : [];
+  // Cap history at MAX_HISTORY_TURNS to keep token costs bounded.
+  const history = options.threadId
+    ? (await listMessages(userId, threadId)).slice(-MAX_HISTORY_TURNS)
+    : [];
+
   const messages = [
     { role: "system" as const, content: system },
     ...history

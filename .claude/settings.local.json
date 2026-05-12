@@ -21,5 +21,8 @@
       "PowerShell(ls -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\\\\app\\\\app\" | Where-Object { $_.PSIsContainer } | Select-Object Name)",
       "Bash(xargs grep -l \"stripe\\\\|billing\\\\|subscription\\\\|pricing\\\\|STRIPE\\\\|PRICE\")"
     ]
+  },
+  "enabledPlugins": {
+    "stripe@claude-plugins-official": true
   }
 }

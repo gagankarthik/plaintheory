@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/auth/session";
 import { listThreads } from "@/lib/db/chat";
-import { getUser } from "@/lib/db/user";
+import { getUser, isPlusUser } from "@/lib/db/user";
 
 import { ChatView } from "./_components/chat-view";
 
@@ -12,7 +12,7 @@ export default async function ChatPage() {
   const user = await getUser(session.userId);
   const threads = await listThreads(session.userId);
   const region = user?.onboarding.region ?? null;
-  const isPlus = !!(user?.subscriptionPlan || user?.stripeCustomerId);
+  const isPlus = user ? isPlusUser(user) : false;
 
   return (
     <div className="mx-auto w-full max-w-4xl space-y-4 px-4 py-8 sm:px-6">

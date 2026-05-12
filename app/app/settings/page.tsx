@@ -7,8 +7,8 @@ import { getCurrentUser } from "@/lib/auth/session";
 import { getUser } from "@/lib/db/user";
 
 import { AccountSettings } from "./_components/account-settings";
+import { BillingSection } from "./_components/billing-section";
 import { DeleteAccountButton } from "./_components/delete-account-button";
-import { ManageBillingButton } from "./_components/manage-billing-button";
 import { NotificationsSettings } from "./_components/notifications-settings";
 import { SyncOnSuccess } from "./_components/sync-on-success";
 
@@ -87,21 +87,28 @@ export default async function SettingsPage({
 
       <Card className="border-border/60">
         <CardHeader className="px-6 pt-6 pb-2">
-          <CardTitle className="text-lg">Billing</CardTitle>
-          <CardDescription>
-            {user?.subscriptionPlan
-              ? `You're on ${planLabel}. Manage your subscription, update card, or cancel.`
-              : "You're on the free plan. Upgrade to unlock everything."}
-          </CardDescription>
+          <div className="flex items-start justify-between gap-3">
+            <div className="space-y-1.5">
+              <CardTitle className="text-lg">Billing</CardTitle>
+              <CardDescription>
+                {user?.subscriptionPlan
+                  ? `You're on ${planLabel}.`
+                  : "You're on the free plan. Upgrade to unlock all features."}
+              </CardDescription>
+            </div>
+            {user?.stripeCustomerId ? (
+              <Link href="/app/billing" className="shrink-0 text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline mt-1">
+                View invoices →
+              </Link>
+            ) : null}
+          </div>
         </CardHeader>
         <CardContent className="px-6 pb-6">
-          {user?.subscriptionPlan ? (
-            <ManageBillingButton />
-          ) : (
-            <Link href="/pricing">
-              <Button>See plans</Button>
-            </Link>
-          )}
+          <BillingSection
+            subscriptionPlan={user?.subscriptionPlan}
+            subscriptionStatus={user?.subscriptionStatus}
+            planLabel={planLabel}
+          />
         </CardContent>
       </Card>
 

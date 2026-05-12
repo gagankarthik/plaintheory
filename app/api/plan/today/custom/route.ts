@@ -12,11 +12,8 @@ const Body = z.object({
   category: z
     .enum(["food", "movement", "hydration", "medication", "stress", "sleep"])
     .default("movement"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export async function POST(request: Request) {
   const session = await getCurrentUser();
@@ -25,7 +22,8 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
-  const plan = await getPlan(session.userId, today());
+  const date = parsed.data.date ?? new Date().toISOString().slice(0, 10);
+  const plan = await getPlan(session.userId, date);
   if (!plan) {
     return NextResponse.json({ error: "no plan for today" }, { status: 404 });
   }
@@ -47,13 +45,14 @@ export async function DELETE(request: Request) {
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const url = new URL(request.url);
   const actionId = url.searchParams.get("id");
+  const date = url.searchParams.get("date") ?? new Date().toISOString().slice(0, 10);
   if (!actionId) {
     return NextResponse.json({ error: "missing id" }, { status: 400 });
   }
   if (!actionId.startsWith("custom-")) {
     return NextResponse.json({ error: "only custom tasks can be deleted" }, { status: 400 });
   }
-  const plan = await getPlan(session.userId, today());
+  const plan = await getPlan(session.userId, date);
   if (!plan) return NextResponse.json({ error: "no plan" }, { status: 404 });
   const updated = {
     ...plan,

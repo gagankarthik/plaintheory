@@ -1,6 +1,6 @@
 import type { DailyPlan } from "@/lib/db/plans";
 
-type Log = { timestamp: string; symptomType: string };
+type Log = { timestamp: string; symptomType: string; localDate?: string };
 
 export type BadgeIcon =
   | "flame"
@@ -39,8 +39,13 @@ export const ALL_BADGES: BadgeMeta[] = [
 
 const DAY_MS = 86_400_000;
 
+/** Uses the stored localDate for timezone-correct grouping when available. */
+function dateOf(log: Log): string {
+  return log.localDate ?? log.timestamp.slice(0, 10);
+}
+
 function uniqueDays(logs: Log[]): Set<string> {
-  return new Set(logs.map((l) => l.timestamp.slice(0, 10)));
+  return new Set(logs.map(dateOf));
 }
 
 export function computeStreak(logs: Log[]): number {

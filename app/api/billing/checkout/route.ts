@@ -26,7 +26,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "missing tier" }, { status: 400 });
   }
 
-  const tier = (body as { tier: TierKey }).tier;
+  const tier = (body as { tier: TierKey; returnTo?: string }).tier;
+  const returnTo = (body as { tier: TierKey; returnTo?: string }).returnTo;
   const priceId = PRICE_IDS[tier];
   if (!priceId) {
     return NextResponse.json(
@@ -56,11 +57,14 @@ export async function POST(request: Request) {
     }
 
     const origin = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const successPath = returnTo === "settings"
+      ? "/app/settings?checkout=success"
+      : "/app/plan?checkout=success";
     const checkout = await stripe().checkout.sessions.create({
       mode: "subscription",
       customer: customerId,
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/app/plan?checkout=success`,
+      success_url: `${origin}${successPath}`,
       cancel_url: `${origin}/app/settings?checkout=cancel`,
       allow_promotion_codes: true,
     });

@@ -33,7 +33,7 @@ import { getLocalDate, getLocalTzOffset, isLocalDay } from "@/lib/date";
 import { getPlan, listPlans } from "@/lib/db/plans";
 import { listHabits, listHabitCompletions } from "@/lib/db/habits";
 import { listSymptomLogs } from "@/lib/db/symptoms";
-import { getUser } from "@/lib/db/user";
+import { getUser, isPlusUser } from "@/lib/db/user";
 
 export const dynamic = "force-dynamic";
 
@@ -46,8 +46,10 @@ const CATEGORY_EMOJI: Record<string, string> = {
   sleep: "😴",
 };
 
-function greeting(): string {
-  const hour = new Date().getHours();
+function greeting(tzOffsetMin: number | null): string {
+  // Use the user's local hour, not the server's UTC hour.
+  const localMs = Date.now() - (tzOffsetMin ?? 0) * 60_000;
+  const hour = new Date(localMs).getUTCHours();
   if (hour < 12) return "Good morning";
   if (hour < 17) return "Good afternoon";
   if (hour < 21) return "Good evening";
@@ -135,7 +137,7 @@ export default async function AppHome() {
             })}
           </p>
           <h1 className="font-serif text-3xl tracking-tight sm:text-4xl">
-            {greeting()}, {firstName ?? "there"}.
+            {greeting(tzOffset)}, {firstName ?? "there"}.
           </h1>
           <p className="text-sm text-muted-foreground">{message}</p>
           {userFocusAreas.length > 0 ? (

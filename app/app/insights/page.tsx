@@ -5,7 +5,7 @@ import { UpgradeGate } from "@/components/ui/upgrade-gate";
 import { getCurrentUser } from "@/lib/auth/session";
 import { listPlans } from "@/lib/db/plans";
 import { listSymptomLogs } from "@/lib/db/symptoms";
-import { getUser } from "@/lib/db/user";
+import { getUser, isPlusUser } from "@/lib/db/user";
 
 import { ActivityChart, CheckinGraph, TrendChart, type CheckinActivity, type DayPoint } from "./_components/insights-charts";
 
@@ -23,6 +23,10 @@ function dayLabel(d: Date): string {
 
 type Log = Awaited<ReturnType<typeof listSymptomLogs>>[number];
 
+function localDateOf(log: Log): string {
+  return log.localDate ?? log.timestamp.slice(0, 10);
+}
+
 function buildDailySeries(logs: Log[]): DayPoint[] {
   const series: DayPoint[] = [];
   const now = new Date();
@@ -31,7 +35,7 @@ function buildDailySeries(logs: Log[]): DayPoint[] {
     day.setHours(0, 0, 0, 0);
     day.setDate(day.getDate() - i);
     const iso = day.toISOString().slice(0, 10);
-    const dayLogs = logs.filter((l) => l.timestamp.startsWith(iso));
+    const dayLogs = logs.filter((l) => localDateOf(l) === iso);
     const avg = (type: string): number | null => {
       const filtered = dayLogs.filter((l) => l.symptomType === type && l.severity);
       if (filtered.length === 0) return null;
@@ -53,7 +57,7 @@ function buildDailySeries(logs: Log[]): DayPoint[] {
 }
 
 function streak(logs: Log[]): number {
-  const days = new Set(logs.map((l) => l.timestamp.slice(0, 10)));
+  const days = new Set(logs.map(localDateOf));
   let count = 0;
   for (let i = 0; i < 60; i++) {
     const iso = new Date(Date.now() - i * DAY_MS).toISOString().slice(0, 10);
@@ -70,7 +74,7 @@ function buildContributionData(
 ): CheckinActivity[] {
   const countByDate = new Map<string, number>();
   for (const log of logs) {
-    const date = log.timestamp.slice(0, 10);
+    const date = localDateOf(log);
     countByDate.set(date, (countByDate.get(date) ?? 0) + 1);
   }
 
@@ -100,7 +104,7 @@ export default async function InsightsPage() {
   if (!session) return null;
 
   const user = await getUser(session.userId);
-  const isPlus = !!(user?.subscriptionPlan || user?.stripeCustomerId);
+  const isPlus = user ? isPlusUser(user) : false;
 
   const weekFrom = isoNDaysAgo(7);
   const yearFrom = isoNDaysAgo(364);

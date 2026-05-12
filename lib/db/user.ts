@@ -138,6 +138,11 @@ export async function updateSubscription(
   return updated;
 }
 
+/** Returns true only for users with an active (non-canceled) paid subscription. */
+export function isPlusUser(user: UserRecord): boolean {
+  return user.subscriptionPlan != null && user.subscriptionStatus !== "canceled";
+}
+
 export async function markUserDeleted(userId: string): Promise<void> {
   const current = await getUser(userId);
   if (!current) return;

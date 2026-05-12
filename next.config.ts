@@ -8,6 +8,12 @@ const CSP_DIRECTIVES: Record<string, string[]> = {
     "'self'",
     "'unsafe-eval'",
     "'unsafe-inline'",
+    // Stripe.js
+    "https://js.stripe.com",
+    // Stripe Radar uses Google reCAPTCHA
+    "https://www.google.com",
+    "https://www.gstatic.com",
+    // Vercel analytics
     "https://va.vercel-scripts.com",
     "https://*.vercel-analytics.com",
   ],
@@ -18,21 +24,39 @@ const CSP_DIRECTIVES: Record<string, string[]> = {
     "blob:",
     "https://api.dicebear.com",
     "https://*.amazonaws.com",
+    // Stripe may render card-brand icons
+    "https://*.stripe.com",
   ],
   "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
   "connect-src": [
     "'self'",
+    // AWS / Cognito
     "https://*.amazonaws.com",
     "https://cognito-idp.us-east-2.amazonaws.com",
+    // OpenAI
     "https://api.openai.com",
+    // Stripe APIs and telemetry
+    "https://api.stripe.com",
+    "https://q.stripe.com",
+    "https://r.stripe.com",
+    "https://m.stripe.com",
+    // Vercel analytics
     "https://va.vercel-scripts.com",
     "https://*.vercel-analytics.com",
     "https://*.vercel-insights.com",
     ...(isProd ? [] : ["ws://localhost:*", "http://localhost:*"]),
   ],
+  // Stripe embeds its payment UI in iframes from js.stripe.com.
+  // reCAPTCHA also uses an iframe from google.com.
+  "frame-src": [
+    "https://js.stripe.com",
+    "https://hooks.stripe.com",
+    "https://www.google.com",
+  ],
   "frame-ancestors": ["'none'"],
   "base-uri": ["'self'"],
-  "form-action": ["'self'"],
+  // Stripe Checkout is hosted on stripe.com; allow form submissions there too.
+  "form-action": ["'self'", "https://checkout.stripe.com"],
   "object-src": ["'none'"],
 };
 

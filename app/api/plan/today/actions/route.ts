@@ -9,11 +9,9 @@ export const runtime = "nodejs";
 const Body = z.object({
   actionId: z.string().min(1),
   done: z.boolean(),
+  // Client sends the plan's local date so UTC-offset users don't hit the wrong day.
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
 });
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export async function POST(request: Request) {
   const session = await getCurrentUser();
@@ -22,9 +20,10 @@ export async function POST(request: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "invalid body" }, { status: 400 });
   }
+  const date = parsed.data.date ?? new Date().toISOString().slice(0, 10);
   const plan = await setActionCompleted(
     session.userId,
-    today(),
+    date,
     parsed.data.actionId,
     parsed.data.done,
   );

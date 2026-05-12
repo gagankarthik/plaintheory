@@ -72,7 +72,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
       const res = await fetch("/api/plan/today/custom", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, category: newCategory }),
+        body: JSON.stringify({ text, category: newCategory, date: plan.date }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't add");
@@ -184,6 +184,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
               action={action}
               done={completed.has(action.id)}
               custom={action.id.startsWith("custom-")}
+              planDate={plan.date}
               onToggle={(next) => {
                 setCompleted((prev) => {
                   const updated = new Set(prev);
@@ -216,7 +217,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
                   return u;
                 });
                 const res = await fetch(
-                  `/api/plan/today/custom?id=${encodeURIComponent(action.id)}`,
+                  `/api/plan/today/custom?id=${encodeURIComponent(action.id)}&date=${plan.date}`,
                   { method: "DELETE" },
                 );
                 if (!res.ok) {
@@ -391,6 +392,7 @@ function TaskRow({
   action,
   done,
   custom,
+  planDate,
   onToggle,
   onDelete,
 }: {
@@ -398,6 +400,7 @@ function TaskRow({
   action: FocusAction;
   done: boolean;
   custom: boolean;
+  planDate: string;
   onToggle: (done: boolean) => void;
   onDelete: () => void | Promise<void>;
 }) {
@@ -410,7 +413,7 @@ function TaskRow({
       const res = await fetch("/api/plan/today/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ actionId: action.id, done: next }),
+        body: JSON.stringify({ actionId: action.id, done: next, date: planDate }),
       });
       if (!res.ok) {
         toast.error("Couldn't save. Try again.");

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { updateOnboarding } from "@/lib/db/user";
 import { getCurrentUser } from "@/lib/auth/session";
+import { getUser, updateOnboarding } from "@/lib/db/user";
 
 export const runtime = "nodejs";
 
@@ -13,6 +13,19 @@ export async function POST() {
   const session = await getCurrentUser();
   if (!session) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  const current = await getUser(session.userId);
+  if (!current) {
+    return NextResponse.json({ error: "user not found" }, { status: 404 });
+  }
+
+  // Conditions (focus areas) are required for plan generation to work.
+  if (!current.onboarding.conditions?.length) {
+    return NextResponse.json(
+      { error: "Select at least one focus area before completing onboarding" },
+      { status: 400 },
+    );
   }
 
   const user = await updateOnboarding(session.userId, {
