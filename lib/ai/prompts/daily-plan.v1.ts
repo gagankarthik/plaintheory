@@ -9,7 +9,7 @@
 
 import type { Condition } from "@/lib/conditions";
 
-export const DAILY_PLAN_PROMPT_VERSION = "daily-plan.v2";
+export const DAILY_PLAN_PROMPT_VERSION = "daily-plan.v3";
 
 export type DailyPlanContext = {
   date: string;
@@ -28,7 +28,7 @@ export type DailyPlanContext = {
 export const DAILY_PLAN_SCHEMA: Record<string, unknown> = {
   type: "object",
   additionalProperties: false,
-  required: ["morningBriefing", "focusActions", "routines", "watchFor", "reflectionPrompts"],
+  required: ["morningBriefing", "focusActions", "routines", "meals", "watchFor", "reflectionPrompts"],
   properties: {
     morningBriefing: {
       type: "string",
@@ -36,7 +36,7 @@ export const DAILY_PLAN_SCHEMA: Record<string, unknown> = {
     },
     focusActions: {
       type: "array",
-      minItems: 5,
+      minItems: 6,
       maxItems: 7,
       items: {
         type: "object",
@@ -75,6 +75,40 @@ export const DAILY_PLAN_SCHEMA: Record<string, unknown> = {
         },
       },
     },
+    meals: {
+      type: "array",
+      minItems: 3,
+      maxItems: 4,
+      description: "Concrete meal suggestions for the day — one each for breakfast, lunch, dinner, optionally a snack. Lists actual foods and the nutrients they provide.",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["name", "time", "foods", "nutrients"],
+        properties: {
+          name: {
+            type: "string",
+            description: "Breakfast, Lunch, Dinner, or Snack.",
+          },
+          time: {
+            anyOf: [{ type: "string", description: "HH:MM format" }, { type: "null" }],
+          },
+          foods: {
+            type: "array",
+            minItems: 2,
+            maxItems: 6,
+            description: "Specific food items in the meal, e.g. 'scrambled eggs', 'spinach', 'oat milk'.",
+            items: { type: "string" },
+          },
+          nutrients: {
+            type: "array",
+            minItems: 2,
+            maxItems: 5,
+            description: "What these foods give the body — e.g. 'protein for muscle', 'iron for energy', 'B12 for focus'. Plain language, no clinical claims.",
+            items: { type: "string" },
+          },
+        },
+      },
+    },
     watchFor: {
       type: "string",
       description: "One pattern to notice today, framed gently.",
@@ -103,7 +137,7 @@ Hard rules — never violate:
 4. No diet or fitness prescriptions framed as "you must" — coaching is suggestions, not orders.
 5. Tone: warm, plain language, present tense, concrete. Avoid hedging clichés ("just listen to your body"). Avoid jargon.
 
-Output the JSON schema exactly. focusActions are 5–7 specific, concrete, doable-today tasks spread across the user's focus areas — never vague, never repetitive. Vary the categories. routines are exactly two entries — one Morning Routine and one Evening Routine — each with 3–5 concrete steps timed to the user's wake/sleep schedule. watchFor is one pattern to notice. reflectionPrompts are three short evening questions.
+Output the JSON schema exactly. focusActions are 6–7 specific, concrete, doable-today tasks spread across the user's focus areas — never vague, never repetitive. Vary the categories. routines are exactly two entries — one Morning Routine and one Evening Routine — each with 3–5 concrete steps timed to the user's wake/sleep schedule. meals are 3–4 concrete meal suggestions (breakfast, lunch, dinner, optional snack), each listing real food items the user could buy or cook today and the nutrients those foods provide in plain language (e.g. "iron for steady energy", "fibre for digestion") — strictly respect declared allergens and dietary patterns; never list a food the user avoids. watchFor is one pattern to notice. reflectionPrompts are three short evening questions.
 
 User's focus areas (the wellness topics they picked):
 ${context.focusAreas

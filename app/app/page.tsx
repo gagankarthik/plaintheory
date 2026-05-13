@@ -1,6 +1,15 @@
-import { ArrowRight, CalendarDays, MessageCircle, NotebookPen, TrendingUp } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Lock,
+  MessageCircle,
+  NotebookPen,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import Link from "next/link";
 
+import { DailyDoneConfetti } from "./_components/daily-done-confetti";
 import { SyncPlanButton } from "./_components/sync-plan-button";
 
 import { ActivityRings } from "@/components/widgets/activity-rings";
@@ -33,7 +42,7 @@ import { getLocalDate, getLocalTzOffset, isLocalDay } from "@/lib/date";
 import { getPlan, listPlans } from "@/lib/db/plans";
 import { listHabits, listHabitCompletions } from "@/lib/db/habits";
 import { listSymptomLogs } from "@/lib/db/symptoms";
-import { getUser, isPlusUser } from "@/lib/db/user";
+import { FREE_PLAN_TASK_LIMIT, getUser, isPlusUser } from "@/lib/db/user";
 
 export const dynamic = "force-dynamic";
 
@@ -94,8 +103,16 @@ export default async function AppHome() {
   const latestMoodLog = recentLogs.find((l) => l.symptomType === "mood");
   const moodRating = latestMoodLog?.severity ?? null;
 
-  const completedCount = plan?.completedActionIds?.length ?? 0;
-  const totalActions = plan?.focusActions.length ?? 0;
+  const isPlus = isPlusUser(user);
+  const allFocusActions = plan?.focusActions ?? [];
+  const visibleActions = isPlus ? allFocusActions : allFocusActions.slice(0, FREE_PLAN_TASK_LIMIT);
+  const hiddenActionCount = isPlus ? 0 : Math.max(0, allFocusActions.length - visibleActions.length);
+  const completedIds = plan?.completedActionIds ?? [];
+  const visibleIds = new Set(visibleActions.map((a) => a.id));
+  const completedCount = isPlus
+    ? completedIds.length
+    : completedIds.filter((id) => visibleIds.has(id)).length;
+  const totalActions = visibleActions.length;
   const planDone = plan != null && totalActions > 0 && completedCount === totalActions;
 
   const activeHabits = habits.filter((h) => !h.archivedAt);
@@ -125,6 +142,7 @@ export default async function AppHome() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
+      <DailyDoneConfetti date={date} done={planDone} />
       {/* Greeting */}
       <section className="flex items-start gap-4">
         <Avatar seed={user.email} size={56} className="size-14 shrink-0 sm:size-16" />
@@ -187,8 +205,8 @@ export default async function AppHome() {
                 <>
                   <p className="text-sm leading-relaxed text-foreground">{plan.morningBriefing}</p>
                   <ul className="space-y-2">
-                    {plan.focusActions.map((a) => {
-                      const done = plan?.completedActionIds?.includes(a.id) ?? false;
+                    {visibleActions.map((a) => {
+                      const done = completedIds.includes(a.id);
                       return (
                         <li key={a.id} className="flex items-start gap-2.5 text-sm">
                           <span className="mt-0.5 text-base leading-none">
@@ -200,6 +218,20 @@ export default async function AppHome() {
                         </li>
                       );
                     })}
+                    {hiddenActionCount > 0 ? (
+                      <li className="flex items-center gap-2.5 rounded-lg border border-dashed border-primary/30 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
+                        <Lock className="size-3.5 shrink-0 text-primary/70" />
+                        <span className="flex-1">
+                          +{hiddenActionCount} more {hiddenActionCount === 1 ? "task" : "tasks"} on Plus
+                        </span>
+                        <Link href="/pricing" className="shrink-0">
+                          <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs text-primary hover:text-primary">
+                            <Sparkles className="size-3" />
+                            Upgrade
+                          </Button>
+                        </Link>
+                      </li>
+                    ) : null}
                   </ul>
                   {totalActions > 0 ? (
                     <div className="space-y-1.5">
@@ -225,7 +257,7 @@ export default async function AppHome() {
           </Card>
 
           {/* Today's Routines — Plus only */}
-          {isPlusUser(user) && plan?.routines && plan.routines.length > 0 ? (
+          {isPlus && plan?.routines && plan.routines.length > 0 ? (
             <Card className="border-border/60">
               <CardHeader className="px-6 pt-6 pb-3">
                 <div className="flex items-center gap-2">
@@ -293,6 +325,7 @@ export default async function AppHome() {
             hydration={{ value: waterToday, target: hydrationTarget }}
             checkIns={{ value: todayLogs.length, target: 3 }}
             planActions={{ value: completedCount, target: totalActions || 1 }}
+            serverDate={date}
           />
 
           {/* Streaks */}

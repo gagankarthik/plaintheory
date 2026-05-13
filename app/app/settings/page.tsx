@@ -1,10 +1,11 @@
+import { FileDown, Lock, Sparkles } from "lucide-react";
 import Link from "next/link";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/session";
-import { getUser } from "@/lib/db/user";
+import { getUser, isPlusUser } from "@/lib/db/user";
 
 import { AccountSettings } from "./_components/account-settings";
 import { BillingSection } from "./_components/billing-section";
@@ -116,13 +117,31 @@ export default async function SettingsPage({
         <CardHeader className="px-6 pt-6 pb-2">
           <CardTitle className="text-lg">Your data</CardTitle>
           <CardDescription>
-            Download your data anytime. We never share or sell it.
+            Download a polished wellness summary with your check-in averages, streaks, and a recent-logs appendix.
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex flex-wrap gap-2 px-6 pb-6">
-          <Link href="/api/me/export">
-            <Button variant="outline">Download my data (JSON)</Button>
-          </Link>
+        <CardContent className="flex flex-wrap items-center gap-2 px-6 pb-6">
+          {user && isPlusUser(user) ? (
+            <Link href="/api/me/export">
+              <Button variant="outline" className="gap-1.5">
+                <FileDown className="size-4" />
+                Download wellness summary (PDF)
+              </Button>
+            </Link>
+          ) : (
+            <>
+              <Button variant="outline" className="gap-1.5" disabled>
+                <Lock className="size-4" />
+                Download wellness summary (PDF)
+              </Button>
+              <Link href="/pricing">
+                <Button size="sm" className="gap-1.5">
+                  <Sparkles className="size-3.5" />
+                  Plus only — upgrade
+                </Button>
+              </Link>
+            </>
+          )}
         </CardContent>
       </Card>
 

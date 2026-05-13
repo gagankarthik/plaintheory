@@ -1,7 +1,9 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 import { LogoWithWordmark } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getUser } from "@/lib/db/user";
 
@@ -26,13 +28,23 @@ export default async function PricingPage() {
     // unauthenticated — treat as logged out
   }
 
+  const homeHref = isLoggedIn ? "/app" : "/";
+
   return (
     <div className="relative flex min-h-dvh flex-col">
       <header className="flex items-center justify-between px-6 py-6 sm:px-10">
-        <Link href="/">
+        <Link href={homeHref}>
           <LogoWithWordmark />
         </Link>
-        <ThemeToggle />
+        <div className="flex items-center gap-2">
+          <Link href={homeHref}>
+            <Button variant="ghost" size="sm">
+              <ArrowLeft className="size-4" />
+              Back
+            </Button>
+          </Link>
+          <ThemeToggle />
+        </div>
       </header>
       <main className="mx-auto w-full max-w-5xl space-y-10 px-6 py-12 sm:px-10">
         <div className="space-y-3 text-center">

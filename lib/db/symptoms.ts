@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { DeleteCommand, PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 import { ddb, getTableName } from "./client";
 import { symptomLogKey, symptomLogPrefix, userScopePK } from "./keys";
@@ -62,4 +62,17 @@ export async function listSymptomLogs(
 function stripKeys(item: Record<string, unknown>): SymptomLog {
   const { PK: _pk, SK: _sk, ...rest } = item as { PK: string; SK: string } & SymptomLog;
   return rest as SymptomLog;
+}
+
+export async function deleteSymptomLog(
+  userId: string,
+  timestamp: string,
+  logId: string,
+): Promise<void> {
+  await ddb.send(
+    new DeleteCommand({
+      TableName: getTableName(),
+      Key: symptomLogKey(userId, timestamp, logId),
+    }),
+  );
 }

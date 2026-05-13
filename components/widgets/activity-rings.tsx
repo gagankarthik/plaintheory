@@ -17,6 +17,12 @@ type Props = {
   hydration: { value: number; target: number };
   checkIns: { value: number; target: number };
   planActions: { value: number; target: number };
+  /**
+   * The server's local date used for the SSR values. If the browser's local
+   * date matches, we trust SSR and skip the refetch — avoids the brief flash
+   * where rings update from one set of numbers to another on mount.
+   */
+  serverDate?: string;
   className?: string;
 };
 
@@ -31,7 +37,13 @@ const RING_GAP = 10;
 
 const localDate = () => new Intl.DateTimeFormat("en-CA").format(new Date());
 
-export function ActivityRings({ hydration, checkIns, planActions, className }: Props) {
+export function ActivityRings({
+  hydration,
+  checkIns,
+  planActions,
+  serverDate,
+  className,
+}: Props) {
   const [values, setValues] = useState({
     water: hydration.value,
     waterTarget: hydration.target,
@@ -41,9 +53,11 @@ export function ActivityRings({ hydration, checkIns, planActions, className }: P
     planTotal: planActions.target,
   });
 
-  // Self-correct: fetch today's actual values using the client's local date + timezone.
+  // Only refetch if SSR rendered with a different day than the browser's local
+  // date (timezone drift / stale cookie). Otherwise trust the server values.
   useEffect(() => {
     const today = localDate();
+    if (serverDate && serverDate === today) return;
     const tz = new Date().getTimezoneOffset();
     fetch(`/api/today/summary?date=${today}&tz=${tz}`, { cache: "no-store" })
       .then((r) => r.json())
@@ -58,7 +72,7 @@ export function ActivityRings({ hydration, checkIns, planActions, className }: P
         });
       })
       .catch(() => { /* keep SSR values */ });
-  }, []);
+  }, [serverDate]);
 
   const rings: Ring[] = [
     { label: "Hydration", value: values.water, target: values.waterTarget, color: "var(--info)", unit: "glasses" },

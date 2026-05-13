@@ -5,7 +5,7 @@ import { getLocalDate, isLocalDay } from "@/lib/date";
 import { getPlan } from "@/lib/db/plans";
 import { listHabitCompletions, listHabits } from "@/lib/db/habits";
 import { listSymptomLogs } from "@/lib/db/symptoms";
-import { getUser } from "@/lib/db/user";
+import { FREE_PLAN_TASK_LIMIT, getUser, isPlusUser } from "@/lib/db/user";
 
 export const runtime = "nodejs";
 
@@ -44,8 +44,15 @@ export async function GET(request: NextRequest) {
   const waterCount = todayLogs.filter((l) => l.symptomType === "water").length;
   const checkInCount = todayLogs.length;
 
-  const completedCount = plan?.completedActionIds?.length ?? 0;
-  const totalActions = plan?.focusActions.length ?? 0;
+  const isPlus = user ? isPlusUser(user) : false;
+  const allActions = plan?.focusActions ?? [];
+  const visibleActions = isPlus ? allActions : allActions.slice(0, FREE_PLAN_TASK_LIMIT);
+  const visibleIds = new Set(visibleActions.map((a) => a.id));
+  const allCompleted = plan?.completedActionIds ?? [];
+  const completedCount = isPlus
+    ? allCompleted.length
+    : allCompleted.filter((id) => visibleIds.has(id)).length;
+  const totalActions = visibleActions.length;
 
   const activeHabits = habits.filter((h) => !h.archivedAt);
   const habitsDone = completions.filter((c) => c.date === today).length;

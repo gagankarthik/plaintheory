@@ -1,14 +1,18 @@
 import Link from "next/link";
 
 import { LogoWithWordmark } from "@/components/brand/logo";
+import { getHomeHref } from "@/lib/auth/session";
 
 export const metadata = { title: "Accessibility" };
+export const dynamic = "force-dynamic";
 
-export default function AccessibilityPage() {
+export default async function AccessibilityPage() {
+  const homeHref = await getHomeHref();
+
   return (
     <div className="relative flex min-h-dvh flex-col">
       <header className="flex items-center justify-between px-6 py-6 sm:px-10">
-        <Link href="/">
+        <Link href={homeHref}>
           <LogoWithWordmark />
         </Link>
       </header>

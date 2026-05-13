@@ -143,6 +143,14 @@ export function isPlusUser(user: UserRecord): boolean {
   return user.subscriptionPlan != null && user.subscriptionStatus !== "canceled";
 }
 
+/**
+ * How many daily-plan tasks free users can see and act on. Plus users see all
+ * tasks the AI generated (currently 6–7). Surfaces that show/count plan tasks
+ * — home page, plan page, today summary — must respect this so progress
+ * indicators stay consistent.
+ */
+export const FREE_PLAN_TASK_LIMIT = 3;
+
 export async function markUserDeleted(userId: string): Promise<void> {
   const current = await getUser(userId);
   if (!current) return;

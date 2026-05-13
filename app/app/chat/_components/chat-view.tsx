@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { CrisisModal } from "@/components/auth/crisis-modal";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { MultiStepLoader } from "@/components/ui/multi-step-loader";
 import { Textarea } from "@/components/ui/textarea";
 import { getCrisisResources, type CrisisResource } from "@/lib/ai/crisis";
 import type { RegionId } from "@/lib/onboarding/options";
@@ -255,6 +256,25 @@ export function ChatView({ initialThreadId, region, userEmail, isPlus }: Props) 
               ) : (
                 messages.map((m) => <Bubble key={m.id} msg={m} userEmail={userEmail} />)
               )}
+              {sending ? (
+                <div className="flex items-end gap-2 pl-1">
+                  <Avatar seed={COACH_SEED} size={28} className="size-7 shrink-0" />
+                  <div className="rounded-2xl rounded-bl-sm bg-muted/60 px-3.5 py-2.5">
+                    <MultiStepLoader
+                      steps={
+                        mode === "mood"
+                          ? ["Listening…", "Sitting with that…", "Finding the right words…"]
+                          : [
+                              "Reading what you said…",
+                              "Pulling in your recent context…",
+                              "Thinking it through…",
+                              "Writing a reply…",
+                            ]
+                      }
+                    />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             {/* Status banners */}

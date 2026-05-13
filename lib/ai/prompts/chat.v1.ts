@@ -4,6 +4,23 @@ export const CHAT_PROMPT_VERSION = "chat.v1";
 
 export type ChatMode = "coach" | "mood";
 
+/**
+ * Snapshot of how the user has been feeling over the last day or so —
+ * fed into the system prompt so the coach can match tone to mood.
+ */
+export type RecentMoodSnapshot = {
+  /** Average mood on the 0–1000 scale (logged via /log). Undefined if no logs. */
+  moodAvg?: number;
+  /** Average energy on the 0–1000 scale. */
+  energyAvg?: number;
+  /** Average focus on the 0–1000 scale. */
+  focusAvg?: number;
+  /** Hours since the most recent mood/energy/focus log, rounded. */
+  lastLogHoursAgo?: number;
+  /** Free-text notes attached to the last few logs (most recent first). */
+  recentNotes?: string[];
+};
+
 export type ChatContext = {
   focusAreas: Condition[];
   goals: string[];
@@ -11,13 +28,52 @@ export type ChatContext = {
   sleepTime?: string;
   dietaryNotes?: string;
   mode?: ChatMode;
+  recentMood?: RecentMoodSnapshot;
 };
 
 export function buildChatSystemPrompt(context: ChatContext): string {
   if (context.mode === "mood") {
-    return buildMoodSystemPrompt();
+    return buildMoodSystemPrompt(context.recentMood);
   }
   return buildCoachSystemPrompt(context);
+}
+
+/** Translate a 0–1000 severity score into a short word. */
+function bandLabel(value: number): string {
+  if (value < 250) return "low";
+  if (value < 500) return "below average";
+  if (value < 750) return "okay";
+  return "high";
+}
+
+function describeRecentMood(snapshot?: RecentMoodSnapshot): string {
+  if (!snapshot) return "";
+  const parts: string[] = [];
+  if (snapshot.moodAvg !== undefined) {
+    parts.push(`mood ${bandLabel(snapshot.moodAvg)}`);
+  }
+  if (snapshot.energyAvg !== undefined) {
+    parts.push(`energy ${bandLabel(snapshot.energyAvg)}`);
+  }
+  if (snapshot.focusAvg !== undefined) {
+    parts.push(`focus ${bandLabel(snapshot.focusAvg)}`);
+  }
+  if (parts.length === 0 && !snapshot.recentNotes?.length) return "";
+
+  const hours = snapshot.lastLogHoursAgo;
+  const recency = hours === undefined
+    ? ""
+    : hours <= 1
+      ? " (logged within the last hour)"
+      : hours < 24
+        ? ` (last logged ~${hours}h ago)`
+        : ` (last logged ~${Math.round(hours / 24)}d ago)`;
+
+  const notes = snapshot.recentNotes?.length
+    ? ` Recent notes: ${snapshot.recentNotes.slice(0, 3).map((n) => `"${n}"`).join("; ")}.`
+    : "";
+
+  return `\nRecent state: ${parts.join(", ")}${recency}.${notes}`;
 }
 
 function buildCoachSystemPrompt(context: ChatContext): string {
@@ -32,6 +88,12 @@ How to talk:
 - Ask at most one follow-up question, and only when it genuinely moves things forward.
 - If you don't know something, say so. Don't pad with generic advice.
 
+Read the room. The user's recent mood and energy (below) should shape your tone, not just your content:
+- If mood or energy is low, slow down. Lead with acknowledgement before any suggestion. Don't pile on tasks.
+- If mood is high and energy is high, you can be playful and push them a little.
+- If focus is low, keep suggestions to one small concrete thing.
+- Never quote the numbers or labels back at them. Adjust your delivery, that's it.
+
 What you can help with: daily routines, food and nutrition (general guidance only), movement and exercise, sleep habits, focus and deep work, managing stress, mood, relationships, learning, building better habits.
 
 What you won't do: prescribe medications or supplements, give specific medical advice, recommend diets by name unless the user brings them up, or suggest foods the user has said they avoid.
@@ -40,10 +102,10 @@ User context — use it when it's actually relevant. Don't recite it back.
 Focus areas: ${context.focusAreas.map((c) => c.name).join(", ") || "not set"}.
 Goals: ${context.goals.join(", ") || "none shared"}.
 ${context.wakeTime ? `Wakes around: ${context.wakeTime}.` : ""}${context.sleepTime ? ` Sleeps around: ${context.sleepTime}.` : ""}
-${context.dietaryNotes ? `Food notes: ${context.dietaryNotes}` : ""}`.trim();
+${context.dietaryNotes ? `Food notes: ${context.dietaryNotes}` : ""}${describeRecentMood(context.recentMood)}`.trim();
 }
 
-function buildMoodSystemPrompt(): string {
+function buildMoodSystemPrompt(snapshot?: RecentMoodSnapshot): string {
   return `You are someone the user trusts to talk to when things feel heavy, good, confusing, or just... a lot. You're not a therapist. You're not a bot running through a script. You're present, warm, and real.
 
 When someone shares something, your first job is to actually hear it — not to fix it, analyze it, or move past it. Sit with what they said. Reflect it back in your own words before doing anything else.
@@ -62,5 +124,5 @@ Hard lines — never cross:
 2. No clinical labels, diagnosis hints, or therapy-speak.
 3. If someone mentions self-harm, suicide, abuse, or a medical emergency — take it seriously, respond with genuine care, and gently tell them to reach out to a professional or crisis line. Don't deflect or rush past it.
 
-This is a space where people can feel without being judged or coached. Just be there.`;
+This is a space where people can feel without being judged or coached. Just be there.${describeRecentMood(snapshot)}`;
 }

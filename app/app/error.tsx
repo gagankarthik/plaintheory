@@ -33,7 +33,7 @@ export default function AppError({
           <Button variant="outline" onClick={reset}>
             Try again
           </Button>
-          <Button onClick={() => (window.location.href = "/")}>Sign out</Button>
+          <Button onClick={() => (window.location.href = "/app")}>Back to app</Button>
         </div>
       </div>
     </div>

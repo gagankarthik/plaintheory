@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { getCurrentUser } from "@/lib/auth/session";
 import { getLocalDate, isLocalDay } from "@/lib/date";
-import { listSymptomLogs } from "@/lib/db/symptoms";
+import { deleteSymptomLog, listSymptomLogs } from "@/lib/db/symptoms";
 
 export const runtime = "nodejs";
 
@@ -35,6 +35,43 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(
     { count, date: today },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
+export async function DELETE(request: NextRequest) {
+  const session = await getCurrentUser();
+  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const params = request.nextUrl.searchParams;
+  const ISO = /^\d{4}-\d{2}-\d{2}$/;
+  const paramDate = params.get("date");
+  const today = paramDate && ISO.test(paramDate) ? paramDate : await getLocalDate();
+  const tzRaw = params.get("tz");
+  const tzOffset = tzRaw != null ? parseInt(tzRaw, 10) : null;
+  const safeTz = tzOffset !== null && !isNaN(tzOffset) ? tzOffset : null;
+
+  const dayBefore = new Date(new Date(today + "T00:00:00Z").getTime() - 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+  const dayAfter = new Date(new Date(today + "T00:00:00Z").getTime() + 86_400_000)
+    .toISOString()
+    .slice(0, 10);
+
+  const logs = await listSymptomLogs(session.userId, { from: dayBefore, to: dayAfter });
+  const todaysWater = logs
+    .filter((l) => l.symptomType === "water" && isLocalDay(l, today, safeTz))
+    .sort((a, b) => (a.timestamp < b.timestamp ? 1 : -1));
+
+  const newest = todaysWater[0];
+  if (!newest) {
+    return NextResponse.json({ count: 0, date: today }, { headers: { "Cache-Control": "no-store" } });
+  }
+
+  await deleteSymptomLog(session.userId, newest.timestamp, newest.logId);
+
+  return NextResponse.json(
+    { count: Math.max(0, todaysWater.length - 1), date: today },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

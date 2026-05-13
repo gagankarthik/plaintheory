@@ -61,3 +61,12 @@ export async function requireUser(): Promise<SessionUser> {
   }
   return user;
 }
+
+/**
+ * Where the "home" / brand-mark should point on public pages.
+ * Logged-in visitors expect to return to their app home, not the marketing site.
+ */
+export async function getHomeHref(): Promise<"/app" | "/"> {
+  const user = await getCurrentUser();
+  return user ? "/app" : "/";
+}

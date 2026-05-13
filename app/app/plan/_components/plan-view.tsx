@@ -1,19 +1,19 @@
 "use client";
 
-import { Check, PartyPopper, Plus, Sparkles, Trash2, Trophy, X } from "lucide-react";
+import { Check, PartyPopper, Plus, Sparkles, Trash2, Trophy, Utensils, X } from "lucide-react";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Confetti } from "@/components/ui/confetti";
 import { Input } from "@/components/ui/input";
 import { UpgradeGate } from "@/components/ui/upgrade-gate";
 import type { DailyPlan, FocusAction } from "@/lib/db/plans";
+import { FREE_PLAN_TASK_LIMIT } from "@/lib/db/user";
 import { cn } from "@/lib/utils";
-
-const FREE_TASK_LIMIT = 3;
 
 const CATEGORY_LABELS: Record<FocusAction["category"], string> = {
   food: "Food",
@@ -53,8 +53,8 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
   const [newCategory, setNewCategory] = useState<FocusAction["category"]>("movement");
   const [creating, setCreating] = useState(false);
 
-  const visibleActions = isPlus ? actions : actions.slice(0, FREE_TASK_LIMIT);
-  const lockedActions = isPlus ? [] : actions.slice(FREE_TASK_LIMIT);
+  const visibleActions = isPlus ? actions : actions.slice(0, FREE_PLAN_TASK_LIMIT);
+  const lockedActions = isPlus ? [] : actions.slice(FREE_PLAN_TASK_LIMIT);
 
   const total = isPlus ? actions.length : visibleActions.length;
   const doneCount = isPlus
@@ -63,6 +63,21 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
   const pct = total === 0 ? 0 : Math.round((doneCount / total) * 100);
   const allDone = doneCount === total && total > 0;
   const halfwayJustHit = doneCount === Math.ceil(total / 2) && total > 1;
+
+  // Fire confetti once when the user transitions into all-done.
+  const [confettiActive, setConfettiActive] = useState(false);
+  const wasAllDone = useRef(allDone);
+  useEffect(() => {
+    if (allDone && !wasAllDone.current) {
+      setConfettiActive(true);
+      const t = setTimeout(() => setConfettiActive(false), 2600);
+      wasAllDone.current = true;
+      return () => clearTimeout(t);
+    }
+    if (!allDone) {
+      wasAllDone.current = false;
+    }
+  }, [allDone]);
 
   const submitNew = async () => {
     const text = newText.trim();
@@ -89,6 +104,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
 
   return (
     <div className="space-y-5">
+      <Confetti active={confettiActive} />
       {/* Header */}
       <Card className="border-border/60">
         <CardContent className="space-y-4 px-5 py-5 sm:px-6 sm:py-6">
@@ -108,7 +124,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
             <div className="flex items-center gap-2">
               {!isPlus ? (
                 <Badge variant="outline" className="border-primary/30 bg-primary/5 text-primary text-[10px]">
-                  Free · {FREE_TASK_LIMIT} of {actions.length} tasks
+                  Free · {FREE_PLAN_TASK_LIMIT} of {actions.length} tasks
                 </Badge>
               ) : (
                 <Badge variant={allDone ? "success" : "primary"} className="shrink-0">
@@ -247,7 +263,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
-                        Task {FREE_TASK_LIMIT + idx + 1} · {CATEGORY_LABELS[action.category]}
+                        Task {FREE_PLAN_TASK_LIMIT + idx + 1} · {CATEGORY_LABELS[action.category]}
                       </p>
                       <p className="truncate text-sm text-foreground sm:text-base">{action.text}</p>
                     </div>
@@ -322,6 +338,71 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
         ) : null}
       </section>
 
+      {/* Meals — Plus only */}
+      {isPlus && plan.meals && plan.meals.length > 0 ? (
+        <Card className="border-border/60">
+          <CardContent className="space-y-4 px-5 py-5 sm:px-6">
+            <div className="flex items-center gap-2">
+              <Utensils className="size-4 text-primary" />
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Today&rsquo;s meals
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {plan.meals.map((meal) => (
+                <div
+                  key={meal.name}
+                  className="space-y-2.5 rounded-xl border border-border/60 bg-card/40 p-4"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-medium text-foreground">{meal.name}</p>
+                    {meal.time ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                        {meal.time}
+                      </span>
+                    ) : null}
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      Foods
+                    </p>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {meal.foods.map((f) => (
+                        <span
+                          key={f}
+                          className="rounded-full border border-border/60 bg-card px-2.5 py-0.5 text-xs text-foreground"
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                      What it gives you
+                    </p>
+                    <ul className="mt-1.5 space-y-1 text-xs leading-relaxed text-muted-foreground">
+                      {meal.nutrients.map((n) => (
+                        <li key={n} className="flex gap-1.5">
+                          <span className="text-primary/70">•</span>
+                          <span>{n}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      ) : !isPlus ? (
+        <UpgradeGate
+          title="Today's meals"
+          description="Specific food suggestions with the nutrients they give your body. Available on Plus."
+          compact
+        />
+      ) : null}
+
       {/* Watch for — Plus only */}
       {isPlus ? (
         <Card className="border-warning/30 bg-warning/5">
@@ -367,7 +448,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
             <div>
               <p className="font-medium text-foreground">Unlock the full plan</p>
               <p className="text-sm text-muted-foreground">
-                {actions.length - FREE_TASK_LIMIT} more tasks, routines, reflection, and unlimited chat.
+                {actions.length - FREE_PLAN_TASK_LIMIT} more tasks, routines, reflection, and unlimited chat.
               </p>
             </div>
             <Link href="/pricing" className="shrink-0">

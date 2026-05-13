@@ -208,3 +208,26 @@ body::before {
 .landing-orb-1 { animation: orb-float-1 18s ease-in-out infinite; }
 .landing-orb-2 { animation: orb-float-2 22s ease-in-out infinite; }
 .landing-orb-3 { animation: orb-float-3 15s ease-in-out infinite; }
+
+/* Water bottle splash on add / drain on remove */
+@keyframes water-rise {
+  0%   { transform: translateY(6px) scaleX(1); }
+  40%  { transform: translateY(-4px) scaleX(1.15); }
+  70%  { transform: translateY(2px) scaleX(0.95); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes water-drop {
+  0%   { transform: translateY(-2px) scaleX(1); }
+  50%  { transform: translateY(6px) scaleX(0.9); }
+  100% { transform: translateY(0) scaleX(1); }
+}
+@keyframes droplet-pop {
+  0%   { opacity: 0; transform: translate(-50%, 4px) scale(0.4); }
+  40%  { opacity: 1; transform: translate(-50%, -8px) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -18px) scale(0.8); }
+}
+
+@keyframes confetti-fall {
+  0%   { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--drift, 0), 110vh, 0) rotate(var(--rotate-end, 360deg)); opacity: 0.9; }
+}

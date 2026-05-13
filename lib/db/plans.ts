@@ -15,6 +15,17 @@ export type DailyRoutine = {
   steps: string[];
 };
 
+export type DailyMeal = {
+  /** Breakfast, Lunch, Dinner, Snack, etc. */
+  name: string;
+  /** Suggested time in HH:MM, or undefined if flexible. */
+  time?: string;
+  /** Concrete food items, e.g. "scrambled eggs", "spinach", "oat milk". */
+  foods: string[];
+  /** What these foods give the body, e.g. "protein for muscle", "B vitamins for energy". */
+  nutrients: string[];
+};
+
 export type DailyPlan = {
   userId: string;
   date: string;
@@ -24,6 +35,7 @@ export type DailyPlan = {
   morningBriefing: string;
   focusActions: FocusAction[];
   routines?: DailyRoutine[];
+  meals?: DailyMeal[];
   watchFor: string;
   reflectionPrompts: string[];
   guardrailsTriggered?: string[];

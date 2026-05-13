@@ -1,6 +1,6 @@
 "use client";
 
-import { Droplet, Minus, Plus, Scale } from "lucide-react";
+import { Scale } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { WaterBottle } from "@/components/widgets/water-bottle";
 import { cn } from "@/lib/utils";
 
 type LogType =
@@ -55,22 +56,29 @@ const MOOD_FACES = [
   { value: 5, emoji: "😄", label: "Bright" },
 ];
 
-export function LogView({ initialLogs }: { initialLogs: Log[] }) {
+export function LogView({
+  initialLogs,
+  waterToday,
+  hydrationTarget,
+}: {
+  initialLogs: Log[];
+  waterToday: number;
+  hydrationTarget: number;
+}) {
   const [logs, setLogs] = useState<Log[]>(initialLogs);
   const [type, setType] = useState<LogType>("mood");
   const [rating, setRating] = useState<number>(3);
-  const [waterCount, setWaterCount] = useState<number>(1);
   const [sleepHours, setSleepHours] = useState<number>(7.5);
   const [weightKg, setWeightKg] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
 
   const meta = TYPES.find((t) => t.type === type) ?? TYPES[0]!;
+  const isWater = meta.input === "water";
 
   const submit = async () => {
     let severity: number | undefined;
-    if (meta.input === "water") severity = waterCount;
-    else if (meta.input === "sleep") severity = sleepHours;
+    if (meta.input === "sleep") severity = sleepHours;
     else if (meta.input === "weight") {
       const n = Number(weightKg);
       if (!n || n < 20 || n > 500) {
@@ -133,7 +141,7 @@ export function LogView({ initialLogs }: { initialLogs: Log[] }) {
             ) : meta.input === "rating" ? (
               <RatingPicker value={rating} onChange={setRating} />
             ) : meta.input === "water" ? (
-              <WaterCounter value={waterCount} onChange={setWaterCount} />
+              <WaterBottle initialGlasses={waterToday} target={hydrationTarget} />
             ) : meta.input === "sleep" ? (
               <SleepInput value={sleepHours} onChange={setSleepHours} />
             ) : (
@@ -141,15 +149,23 @@ export function LogView({ initialLogs }: { initialLogs: Log[] }) {
             )}
           </div>
 
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Anything that preceded it? (optional)"
-            rows={2}
-          />
-          <Button onClick={submit} loading={saving} className="w-full" size="lg">
-            Log it
-          </Button>
+          {!isWater ? (
+            <>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Anything that preceded it? (optional)"
+                rows={2}
+              />
+              <Button onClick={submit} loading={saving} className="w-full" size="lg">
+                Log it
+              </Button>
+            </>
+          ) : (
+            <p className="text-center text-xs text-muted-foreground">
+              Tap + or − to log a glass — it saves automatically.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -244,45 +260,6 @@ function RatingPicker({
   );
 }
 
-function WaterCounter({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-}) {
-  return (
-    <div className="flex items-center justify-center gap-4 rounded-2xl border border-border/60 bg-card p-4">
-      <button
-        type="button"
-        onClick={() => onChange(Math.max(1, value - 1))}
-        className="inline-flex size-11 items-center justify-center rounded-full border border-border/60 transition-colors hover:bg-accent/40 active:scale-95"
-        aria-label="Decrease"
-      >
-        <Minus className="size-5" />
-      </button>
-      <div className="flex min-w-[120px] flex-col items-center">
-        <div className="relative">
-          <Droplet className="size-12 text-info" />
-          <span className="absolute inset-0 flex items-center justify-center pb-1 font-serif text-lg font-bold text-info-foreground">
-            {value}
-          </span>
-        </div>
-        <span className="mt-1 text-xs text-muted-foreground">
-          glass{value === 1 ? "" : "es"}
-        </span>
-      </div>
-      <button
-        type="button"
-        onClick={() => onChange(Math.min(20, value + 1))}
-        className="inline-flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground transition-all hover:bg-primary/90 active:scale-95"
-        aria-label="Increase"
-      >
-        <Plus className="size-5" />
-      </button>
-    </div>
-  );
-}
 
 function SleepInput({
   value,

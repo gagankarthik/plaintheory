@@ -1,11 +1,15 @@
-import { Activity, Compass, Flame, Sparkles } from "lucide-react";
+import { Activity, Compass, FileDown, Flame, Lock, Sparkles } from "lucide-react";
+import Link from "next/link";
 
+import { ActivityRings } from "@/components/widgets/activity-rings";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { UpgradeGate } from "@/components/ui/upgrade-gate";
 import { getCurrentUser } from "@/lib/auth/session";
-import { listPlans } from "@/lib/db/plans";
+import { getLocalDate, getLocalTzOffset, isLocalDay } from "@/lib/date";
+import { getPlan, listPlans } from "@/lib/db/plans";
 import { listSymptomLogs } from "@/lib/db/symptoms";
-import { getUser, isPlusUser } from "@/lib/db/user";
+import { FREE_PLAN_TASK_LIMIT, getUser, isPlusUser } from "@/lib/db/user";
 
 import { ActivityChart, CheckinGraph, TrendChart, type CheckinActivity, type DayPoint } from "./_components/insights-charts";
 
@@ -109,6 +113,11 @@ export default async function InsightsPage() {
   const weekFrom = isoNDaysAgo(7);
   const yearFrom = isoNDaysAgo(364);
   const to = new Date().toISOString();
+  const today = await getLocalDate();
+  const tzOffset = await getLocalTzOffset();
+
+  // Today's plan snapshot for the rings widget (rings respect free-tier task limit).
+  const todayPlan = await getPlan(session.userId, today);
 
   // Free users get KPIs only — no heavy data fetch needed for the gate
   const [logs, yearLogs, plans] = isPlus
@@ -140,6 +149,20 @@ export default async function InsightsPage() {
   const completionRate =
     actionsTotal === 0 ? 0 : Math.round((actionsDone / actionsTotal) * 100);
 
+  // Today's ring values — respect free-tier task limit so rings match the home/plan view.
+  const todayLogs = logs.filter((l) => isLocalDay(l, today, tzOffset));
+  const waterToday = todayLogs.filter((l) => l.symptomType === "water").length;
+  const hydrationTarget = user?.onboarding.body?.hydrationTargetGlasses ?? 8;
+  const allTodayActions = todayPlan?.focusActions ?? [];
+  const visibleTodayActions = isPlus
+    ? allTodayActions
+    : allTodayActions.slice(0, FREE_PLAN_TASK_LIMIT);
+  const visibleTodayIds = new Set(visibleTodayActions.map((a) => a.id));
+  const todayCompleted = isPlus
+    ? (todayPlan?.completedActionIds?.length ?? 0)
+    : (todayPlan?.completedActionIds ?? []).filter((id) => visibleTodayIds.has(id)).length;
+  const todayPlanTotal = visibleTodayActions.length;
+
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
       <div className="space-y-1">
@@ -150,6 +173,13 @@ export default async function InsightsPage() {
           A quiet weekly review.
         </h1>
       </div>
+
+      <ActivityRings
+        hydration={{ value: waterToday, target: hydrationTarget }}
+        checkIns={{ value: todayLogs.length, target: 3 }}
+        planActions={{ value: todayCompleted, target: todayPlanTotal || 1 }}
+        serverDate={today}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi
@@ -224,20 +254,37 @@ export default async function InsightsPage() {
                   it&rsquo;s how the AI learns what fits.
                 </span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary">·</span>
-                <span>
-                  Download your last 30 days as a{" "}
-                  <a
-                    href="/api/report"
-                    className="font-medium text-primary underline-offset-4 hover:underline"
-                  >
-                    personal reflection PDF
-                  </a>
-                  .
-                </span>
-              </li>
             </ul>
+
+            <div className="rounded-xl border border-border/60 bg-card/40 p-3">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Personal reflection PDF
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                Your last 30 days condensed into a calm, printable reflection — patterns, completion, mood and energy.
+              </p>
+              {isPlus ? (
+                <Link href="/api/report" className="mt-2.5 inline-block">
+                  <Button variant="outline" size="sm" className="gap-1.5">
+                    <FileDown className="size-3.5" />
+                    Download PDF
+                  </Button>
+                </Link>
+              ) : (
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  <Button variant="outline" size="sm" className="gap-1.5" disabled>
+                    <Lock className="size-3.5" />
+                    Download PDF
+                  </Button>
+                  <Link href="/pricing">
+                    <Button size="sm" className="gap-1.5">
+                      <Sparkles className="size-3" />
+                      Plus only
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </div>

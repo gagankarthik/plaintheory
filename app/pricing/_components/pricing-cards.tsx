@@ -22,13 +22,6 @@ const PLUS_FEATURES = [
 
 const FREE_FEATURES = ["1 focus area", "Daily plan", "5 chat messages / day", "Mood + energy logs"];
 
-const PREMIUM_FEATURES = [
-  "Everything in Plus",
-  "Voice mode",
-  "Apple Health / Google Fit",
-  "Family sharing",
-];
-
 function CheckoutButton({
   tierKey,
   isCurrentPlan,
@@ -202,24 +195,11 @@ export function PricingCards({
               <CardTitle className="text-lg">Premium</CardTitle>
               <Badge variant="outline">Coming soon</Badge>
             </div>
-            <CardDescription>Voice, integrations, family.</CardDescription>
-            <div className="pt-2">
-              <span className="font-serif text-3xl">$39</span>
-              <span className="text-sm text-muted-foreground"> / month</span>
-            </div>
           </CardHeader>
-          <CardContent className="space-y-4 px-6 pb-6">
-            <ul className="space-y-1.5 text-sm">
-              {PREMIUM_FEATURES.map((f) => (
-                <li key={f} className="flex items-center gap-2 text-muted-foreground">
-                  <Check className="size-3.5 shrink-0 opacity-40" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link href="/sign-up?tier=premium" className="block w-full">
-              <Button variant="outline" className="w-full">Join waitlist</Button>
-            </Link>
+          <CardContent className="flex min-h-[180px] items-center justify-center px-6 pb-6">
+            <p className="text-center text-sm text-muted-foreground">
+              Something bigger is on the way.
+            </p>
           </CardContent>
         </Card>
       </div>

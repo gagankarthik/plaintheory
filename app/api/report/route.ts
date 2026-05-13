@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth/session";
 import { listPlans } from "@/lib/db/plans";
 import { listSymptomLogs } from "@/lib/db/symptoms";
-import { getUser } from "@/lib/db/user";
+import { getUser, isPlusUser } from "@/lib/db/user";
 
 export const runtime = "nodejs";
 
@@ -19,6 +19,13 @@ export async function GET() {
 
   const user = await getUser(session.userId);
   if (!user) return NextResponse.json({ error: "no user" }, { status: 404 });
+
+  if (!isPlusUser(user)) {
+    return NextResponse.json(
+      { error: "The personal reflection PDF is a Plus feature.", upgrade: "/pricing" },
+      { status: 402 },
+    );
+  }
 
   const from = isoNDaysAgo(30);
   const to = new Date().toISOString();
