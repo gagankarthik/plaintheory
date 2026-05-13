@@ -22,10 +22,10 @@ export function PaymentFailedBanner() {
 
   return (
     <div className="border-b border-destructive/20 bg-destructive/10 px-4 py-2.5">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
-        <div className="flex items-center gap-2.5 min-w-0">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-4 gap-y-1.5">
+        <div className="flex min-w-0 items-center gap-2.5">
           <AlertTriangle className="size-4 shrink-0 text-destructive" />
-          <p className="text-sm text-destructive">
+          <p className="text-xs leading-snug text-destructive sm:text-sm">
             <span className="font-medium">Payment failed.</span>{" "}
             <span className="text-destructive/80">Update your card to keep Plus access.</span>
           </p>

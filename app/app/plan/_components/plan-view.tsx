@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Confetti } from "@/components/ui/confetti";
 import { Input } from "@/components/ui/input";
-import { UpgradeGate } from "@/components/ui/upgrade-gate";
 import type { DailyPlan, FocusAction } from "@/lib/db/plans";
 import { FREE_PLAN_TASK_LIMIT } from "@/lib/db/user";
 import { cn } from "@/lib/utils";
@@ -245,33 +244,16 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
           ))}
         </div>
 
-        {/* Locked tasks gate */}
+        {/* Slim locked-tasks hint — keeps the count visible, defers the pitch to the consolidated Plus card below */}
         {lockedActions.length > 0 ? (
-          <UpgradeGate
-            title={`${lockedActions.length} more tasks locked`}
-            description={`Plus gives you all ${actions.length} tasks tailored to your profile — plus routines, reflection prompts, and more.`}
-            preview={
-              <div className="space-y-2">
-                {lockedActions.slice(0, 3).map((action, idx) => (
-                  <div
-                    key={action.id}
-                    className="flex items-center gap-3 rounded-2xl border border-border/60 bg-card px-4 py-4 sm:px-5"
-                  >
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-border bg-card" />
-                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl border border-border/60 bg-card/60 text-base sm:size-10">
-                      {CATEGORY_EMOJI[action.category]}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground">
-                        Task {FREE_PLAN_TASK_LIMIT + idx + 1} · {CATEGORY_LABELS[action.category]}
-                      </p>
-                      <p className="truncate text-sm text-foreground sm:text-base">{action.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            }
-          />
+          <div className="flex items-center gap-2.5 rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+            <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+              <Sparkles className="size-3" />
+            </span>
+            <span className="flex-1">
+              +{lockedActions.length} more {lockedActions.length === 1 ? "task" : "tasks"} on Plus
+            </span>
+          </div>
         ) : null}
 
         {/* Add custom task — Plus only */}
@@ -338,128 +320,131 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
         ) : null}
       </section>
 
-      {/* Meals — Plus only */}
-      {isPlus && plan.meals && plan.meals.length > 0 ? (
-        <Card className="border-border/60">
-          <CardContent className="space-y-4 px-5 py-5 sm:px-6">
-            <div className="flex items-center gap-2">
-              <Utensils className="size-4 text-primary" />
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Today&rsquo;s meals
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {plan.meals.map((meal) => (
-                <div
-                  key={meal.name}
-                  className="space-y-2.5 rounded-xl border border-border/60 bg-card/40 p-4"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="font-medium text-foreground">{meal.name}</p>
-                    {meal.time ? (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
-                        {meal.time}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                      Foods
-                    </p>
-                    <div className="mt-1.5 flex flex-wrap gap-1.5">
-                      {meal.foods.map((f) => (
-                        <span
-                          key={f}
-                          className="rounded-full border border-border/60 bg-card px-2.5 py-0.5 text-xs text-foreground"
-                        >
-                          {f}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
-                      What it gives you
-                    </p>
-                    <ul className="mt-1.5 space-y-1 text-xs leading-relaxed text-muted-foreground">
-                      {meal.nutrients.map((n) => (
-                        <li key={n} className="flex gap-1.5">
-                          <span className="text-primary/70">•</span>
-                          <span>{n}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+      {/* Plus-only sections (meals / watch-for / reflection) */}
+      {isPlus ? (
+        <>
+          {plan.meals && plan.meals.length > 0 ? (
+            <Card className="border-border/60">
+              <CardContent className="space-y-4 px-5 py-5 sm:px-6">
+                <div className="flex items-center gap-2">
+                  <Utensils className="size-4 text-primary" />
+                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                    Today&rsquo;s meals
+                  </p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : !isPlus ? (
-        <UpgradeGate
-          title="Today's meals"
-          description="Specific food suggestions with the nutrients they give your body. Available on Plus."
-          compact
-        />
-      ) : null}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {plan.meals.map((meal) => (
+                    <div
+                      key={meal.name}
+                      className="space-y-2.5 rounded-xl border border-border/60 bg-card/40 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="font-medium text-foreground">{meal.name}</p>
+                        {meal.time ? (
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                            {meal.time}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                          Foods
+                        </p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5">
+                          {meal.foods.map((f) => (
+                            <span
+                              key={f}
+                              className="rounded-full border border-border/60 bg-card px-2.5 py-0.5 text-xs text-foreground"
+                            >
+                              {f}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                          What it gives you
+                        </p>
+                        <ul className="mt-1.5 space-y-1 text-xs leading-relaxed text-muted-foreground">
+                          {meal.nutrients.map((n) => (
+                            <li key={n} className="flex gap-1.5">
+                              <span className="text-primary/70">•</span>
+                              <span>{n}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
-      {/* Watch for — Plus only */}
-      {isPlus ? (
-        <Card className="border-warning/30 bg-warning/5">
-          <CardContent className="space-y-1.5 px-5 py-5 sm:px-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-warning">Notice today</p>
-            <p className="text-sm leading-relaxed text-foreground">{plan.watchFor}</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <UpgradeGate
-          title="Notice today"
-          description="Your AI coach highlights one pattern to watch. Available on Plus."
-          compact
-        />
-      )}
+          <Card className="border-warning/30 bg-warning/5">
+            <CardContent className="space-y-1.5 px-5 py-5 sm:px-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-warning">Notice today</p>
+              <p className="text-sm leading-relaxed text-foreground">{plan.watchFor}</p>
+            </CardContent>
+          </Card>
 
-      {/* Reflection — Plus only */}
-      {isPlus ? (
-        <Card className="border-border/60">
-          <CardContent className="space-y-3 px-5 py-5 sm:px-6">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-              Evening reflection
-            </p>
-            <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-foreground">
-              {plan.reflectionPrompts.map((q) => (
-                <li key={q}>{q}</li>
-              ))}
-            </ol>
-          </CardContent>
-        </Card>
-      ) : (
-        <UpgradeGate
-          title="Evening reflection"
-          description="3 personalised reflection questions to close your day. Available on Plus."
-          compact
-        />
-      )}
-
-      {/* Upgrade CTA strip — free users only */}
-      {!isPlus ? (
-        <Card className="border-primary/20 bg-gradient-to-br from-primary/8 via-primary/5 to-transparent">
-          <CardContent className="flex flex-col gap-3 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <div>
-              <p className="font-medium text-foreground">Unlock the full plan</p>
-              <p className="text-sm text-muted-foreground">
-                {actions.length - FREE_PLAN_TASK_LIMIT} more tasks, routines, reflection, and unlimited chat.
+          <Card className="border-border/60">
+            <CardContent className="space-y-3 px-5 py-5 sm:px-6">
+              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                Evening reflection
               </p>
+              <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-relaxed text-foreground">
+                {plan.reflectionPrompts.map((q) => (
+                  <li key={q}>{q}</li>
+                ))}
+              </ol>
+            </CardContent>
+          </Card>
+        </>
+      ) : (
+        /* Consolidated Plus-unlocks card — one decision point, not five */
+        <Card className="border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent">
+          <CardContent className="space-y-4 px-5 py-6 sm:px-6 sm:py-7">
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                <Sparkles className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="font-serif text-xl tracking-tight text-foreground">
+                  Plus unlocks the rest of today.
+                </p>
+                <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                  The plan you&rsquo;re seeing is the surface. Plus gives you the depth.
+                </p>
+              </div>
             </div>
-            <Link href="/pricing" className="shrink-0">
-              <Button className="w-full gap-1.5 sm:w-auto">
+            <ul className="grid gap-2 text-sm text-foreground sm:grid-cols-2">
+              <li className="flex items-center gap-2">
+                <Check className="size-3.5 shrink-0 text-primary" strokeWidth={3} />
+                <span>{actions.length - FREE_PLAN_TASK_LIMIT} more tailored tasks</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="size-3.5 shrink-0 text-primary" strokeWidth={3} />
+                <span>Meals with food &amp; nutrient detail</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="size-3.5 shrink-0 text-primary" strokeWidth={3} />
+                <span>One pattern to notice today</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="size-3.5 shrink-0 text-primary" strokeWidth={3} />
+                <span>Evening reflection prompts</span>
+              </li>
+            </ul>
+            <Link href="/pricing" className="block">
+              <Button className="w-full gap-1.5 sm:w-auto" size="lg">
                 <Sparkles className="size-4" />
                 Upgrade to Plus
               </Button>
             </Link>
           </CardContent>
         </Card>
-      ) : null}
+      )}
 
       <p className="pt-1 text-center text-xs text-muted-foreground">
         General coaching, not therapy or medical advice.

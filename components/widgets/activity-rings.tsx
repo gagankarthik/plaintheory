@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -80,6 +80,19 @@ export function ActivityRings({
     { label: "Plan", value: values.plan, target: values.planTotal, color: "var(--success)", unit: "actions" },
   ];
 
+  // Plan ring "bloom": one-shot pulse when the plan ring hits 100%.
+  const planFull = values.planTotal > 0 && values.plan >= values.planTotal;
+  const wasPlanFull = useRef(planFull);
+  const [bloomKey, setBloomKey] = useState(0);
+  useEffect(() => {
+    if (planFull && !wasPlanFull.current) {
+      setBloomKey((k) => k + 1);
+      wasPlanFull.current = true;
+    } else if (!planFull) {
+      wasPlanFull.current = false;
+    }
+  }, [planFull]);
+
   return (
     <Card className={cn("border-border/60 overflow-hidden", className)}>
       <CardContent className="flex flex-col items-center gap-5 p-5 sm:flex-row sm:items-center sm:gap-7 sm:p-6">
@@ -90,8 +103,21 @@ export function ActivityRings({
               const c = 2 * Math.PI * r;
               const pct = Math.min(1, ring.target === 0 ? 0 : ring.value / ring.target);
               const offset = c * (1 - pct);
+              const isPlanRing = ring.label === "Plan";
+              const blooming = isPlanRing && planFull && bloomKey > 0;
               return (
-                <g key={ring.label}>
+                <g
+                  key={`${ring.label}-${blooming ? bloomKey : "static"}`}
+                  style={{
+                    transformOrigin: "80px 80px",
+                    ...(blooming
+                      ? {
+                          animation: "ring-bloom 700ms ease-out",
+                          ["--bloom-color" as string]: ring.color,
+                        }
+                      : {}),
+                  }}
+                >
                   <circle cx="80" cy="80" r={r} fill="none" stroke={ring.color} strokeWidth="9" strokeLinecap="round" opacity="0.15" />
                   <circle
                     cx="80" cy="80" r={r} fill="none"

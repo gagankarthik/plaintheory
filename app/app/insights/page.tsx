@@ -11,7 +11,14 @@ import { getPlan, listPlans } from "@/lib/db/plans";
 import { listSymptomLogs } from "@/lib/db/symptoms";
 import { FREE_PLAN_TASK_LIMIT, getUser, isPlusUser } from "@/lib/db/user";
 
-import { ActivityChart, CheckinGraph, TrendChart, type CheckinActivity, type DayPoint } from "./_components/insights-charts";
+import {
+  ActivityChart,
+  CheckinGraph,
+  SimpleMoodChart,
+  TrendChart,
+  type CheckinActivity,
+  type DayPoint,
+} from "./_components/insights-charts";
 
 export const dynamic = "force-dynamic";
 
@@ -138,8 +145,10 @@ export default async function InsightsPage() {
   const energyLogs = logs.filter((l) => l.symptomType === "energy" && l.severity);
   const avg = (arr: Log[]) =>
     arr.length === 0
-      ? "—"
+      ? null
       : (arr.reduce((s, l) => s + (l.severity ?? 0), 0) / arr.length).toFixed(1);
+  const moodAvg = avg(moodLogs);
+  const energyAvg = avg(energyLogs);
 
   const actionsDone = plans.reduce(
     (sum, p) => sum + (p.completedActionIds?.length ?? 0),
@@ -185,53 +194,66 @@ export default async function InsightsPage() {
         <Kpi
           icon={<Sparkles className="size-4" />}
           label="Mood avg"
-          value={avg(moodLogs)}
-          hint={`${moodLogs.length} logs`}
+          value={moodAvg ?? "Waiting"}
+          hint={moodAvg ? `${moodLogs.length} logs` : "log a mood to start the pattern"}
+          empty={moodAvg === null}
         />
         <Kpi
           icon={<Activity className="size-4" />}
           label="Energy avg"
-          value={avg(energyLogs)}
-          hint={`${energyLogs.length} logs`}
+          value={energyAvg ?? "Waiting"}
+          hint={energyAvg ? `${energyLogs.length} logs` : "log energy to see the trend"}
+          empty={energyAvg === null}
         />
         <Kpi
           icon={<Flame className="size-4" />}
           label="Check-in streak"
-          value={`${streak(logs)}d`}
-          hint="consecutive days"
+          value={streak(logs) > 0 ? `${streak(logs)}d` : "Day 0"}
+          hint={streak(logs) > 0 ? "consecutive days" : "today's the start"}
+          empty={streak(logs) === 0}
         />
         <Kpi
           icon={<Compass className="size-4" />}
           label="Plan completion"
-          value={`${completionRate}%`}
-          hint={`${actionsDone}/${actionsTotal} actions`}
+          value={actionsTotal === 0 ? "Fresh" : `${completionRate}%`}
+          hint={
+            actionsTotal === 0
+              ? "no plans yet this week"
+              : `${actionsDone}/${actionsTotal} actions`
+          }
+          empty={actionsTotal === 0}
         />
       </div>
 
+      {/* Mood trend — free users get the basic single-line chart; Plus gets the
+          full multi-metric line. Heatmap stays Plus-only. */}
       {isPlus ? (
         <>
           <CheckinGraph data={contributionData} />
           <TrendChart data={series} />
         </>
       ) : (
-        <UpgradeGate
-          title="Activity graph & trend charts"
-          description="See your check-in heatmap across the year and 7-day mood, energy, focus, and sleep trends. Available on Plus."
-          preview={
-            <div className="space-y-4">
-              <div className="h-32 w-full rounded-2xl border border-border/60 bg-card/40" />
-              <div className="h-48 w-full rounded-2xl border border-border/60 bg-card/40" />
-            </div>
-          }
-        />
+        <>
+          <SimpleMoodChart data={series} />
+          <UpgradeGate
+            title="Energy, focus, sleep + year heatmap"
+            description="Plus adds the rest of the trend lines and the at-a-glance year-long activity heatmap."
+            preview={
+              <div className="space-y-3">
+                <div className="h-24 w-full rounded-2xl border border-border/60 bg-card/40" />
+                <div className="h-40 w-full rounded-2xl border border-border/60 bg-card/40" />
+              </div>
+            }
+          />
+        </>
       )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         {isPlus ? <ActivityChart data={series} /> : (
           <UpgradeGate
-            title="Activity breakdown"
-            description="Daily log counts and category breakdown. Available on Plus."
-            preview={<div className="h-48 w-full rounded-2xl border border-border/60 bg-card/40" />}
+            title="Daily log breakdown"
+            description="Bar chart of how often you've checked in each day. Available on Plus."
+            preview={<div className="h-32 w-full rounded-2xl border border-border/60 bg-card/40" />}
           />
         )}
         <Card className="border-border/60">
@@ -297,11 +319,13 @@ function Kpi({
   label,
   value,
   hint,
+  empty,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   hint?: string;
+  empty?: boolean;
 }) {
   return (
     <Card className="border-border/60">
@@ -312,7 +336,13 @@ function Kpi({
           </span>
           <span className="text-xs uppercase tracking-[0.15em]">{label}</span>
         </div>
-        <p className="font-serif text-3xl text-foreground">{value}</p>
+        <p
+          className={`font-serif ${
+            empty ? "text-2xl text-muted-foreground" : "text-3xl text-foreground"
+          }`}
+        >
+          {value}
+        </p>
         {hint ? <p className="text-xs text-muted-foreground">{hint}</p> : null}
       </CardContent>
     </Card>

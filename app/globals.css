@@ -231,3 +231,47 @@ body::before {
   0%   { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
   100% { transform: translate3d(var(--drift, 0), 110vh, 0) rotate(var(--rotate-end, 360deg)); opacity: 0.9; }
 }
+
+/* Activity-rings: plan ring "blooms" when it reaches 100% */
+@keyframes ring-bloom {
+  0%   { transform: scale(1); filter: drop-shadow(0 0 0 var(--bloom-color, var(--success))); }
+  40%  { transform: scale(1.045); filter: drop-shadow(0 0 14px var(--bloom-color, var(--success))); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 6px var(--bloom-color, var(--success))); }
+}
+
+/* Break-glass widget — shard explosion + alarm pulse */
+@keyframes glass-shard {
+  0%   { transform: translate(0, 0) rotate(0deg); opacity: 0.9; }
+  100% { transform: translate(var(--dx, 0), var(--dy, -120px)) rotate(var(--rot, 360deg)); opacity: 0; }
+}
+@keyframes alarm-glow {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.55 0.18 25 / 0.45); }
+  50%      { box-shadow: 0 0 0 6px oklch(0.55 0.18 25 / 0); }
+}
+
+/* Realistic wire reconnect — welding flash, sparks, current pulse, idle wobble */
+@keyframes weld-flash {
+  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  18%  { transform: translate(-50%, -50%) scale(1.6); opacity: 1; }
+  55%  { transform: translate(-50%, -50%) scale(1.05); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(0.7); opacity: 0; }
+}
+@keyframes weld-spark {
+  0%   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--dy, 0px))) scale(0); opacity: 0; }
+}
+@keyframes current-flow {
+  0%   { left: 0%;   opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+@keyframes wire-wobble {
+  0%, 100% { transform: translate(0, 0); }
+  25%      { transform: translate(0, 0.6px); }
+  75%      { transform: translate(0, -0.4px); }
+}
+@keyframes copper-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50%      { transform: scale(1.2); opacity: 0.65; }
+}

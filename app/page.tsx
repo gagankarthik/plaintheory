@@ -38,6 +38,7 @@ import {
   StaggerItem,
 } from "./_components/landing-motion";
 import { HeroBackground, SectionDots } from "./_components/landing-bg";
+import { LandingMockPreview } from "./_components/landing-mock-preview";
 
 export const metadata: Metadata = {
   title: "PlainTheory — A calm daily coaching companion",
@@ -65,8 +66,6 @@ export default async function LandingPage() {
           </Link>
           <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
             <a href="#how" className="hover:text-foreground">How it works</a>
-            <a href="#features" className="hover:text-foreground">Features</a>
-            <a href="#compare" className="hover:text-foreground">Why us</a>
             <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
             <a href="#faq" className="hover:text-foreground">FAQ</a>
           </nav>
@@ -143,137 +142,35 @@ export default async function LandingPage() {
             </FadeIn>
           </div>
 
-          {/* MOCK PREVIEW CARD */}
+          {/* MOCK PREVIEW — single card, scroll-triggered animation */}
           <FadeIn delay={0.4}>
-            <div className="mx-auto mt-12 max-w-3xl px-2 sm:mt-16">
-              <div className="rounded-3xl border border-border/60 bg-card/80 p-3 shadow-[0_2px_4px_0_rgb(0_0_0_/_0.04),0_40px_80px_-30px_rgb(0_0_0_/_0.18)] backdrop-blur sm:p-5">
-                <div className="grid gap-3 lg:grid-cols-3">
-                  {/* Tasks */}
-                  <Card className="border-border/60 lg:col-span-2">
-                    <CardContent className="space-y-3 p-4 sm:p-5">
-                      <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                        <span>Tuesday — your day</span>
-                        <Badge variant="primary" className="text-[10px]">2 / 3 done</Badge>
-                      </div>
-                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-border/60">
-                        <div className="h-full w-2/3 rounded-full bg-primary" />
-                      </div>
-                      <ul className="space-y-2">
-                        {[
-                          { done: true, emoji: "🥗", text: "Protein-first breakfast" },
-                          { done: true, emoji: "🏃", text: "Walk 10 minutes after lunch" },
-                          { done: false, emoji: "🌙", text: "Phone off by 9:30pm" },
-                        ].map((t) => (
-                          <li
-                            key={t.text}
-                            className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-3 py-2.5 text-sm"
-                          >
-                            <span
-                              className={
-                                t.done
-                                  ? "flex size-5 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
-                                  : "size-5 shrink-0 rounded-full border-2 border-border"
-                              }
-                            >
-                              {t.done ? <Check className="size-3" strokeWidth={3} /> : null}
-                            </span>
-                            <span className="text-base">{t.emoji}</span>
-                            <span
-                              className={t.done ? "text-muted-foreground line-through" : "text-foreground"}
-                            >
-                              {t.text}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                  {/* Rings + hydration */}
-                  <div className="space-y-3">
-                    <Card className="border-border/60">
-                      <CardContent className="space-y-3 p-4">
-                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                          Today&rsquo;s rings
-                        </p>
-                        <div className="relative mx-auto size-24">
-                          <svg viewBox="0 0 96 96" className="size-full -rotate-90">
-                            <circle cx="48" cy="48" r="36" fill="none" stroke="var(--info)" strokeWidth="6" opacity="0.15" />
-                            <circle cx="48" cy="48" r="36" fill="none" stroke="var(--info)" strokeWidth="6" strokeDasharray="226" strokeDashoffset="56" strokeLinecap="round" />
-                            <circle cx="48" cy="48" r="26" fill="none" stroke="var(--primary)" strokeWidth="6" opacity="0.15" />
-                            <circle cx="48" cy="48" r="26" fill="none" stroke="var(--primary)" strokeWidth="6" strokeDasharray="163" strokeDashoffset="40" strokeLinecap="round" />
-                            <circle cx="48" cy="48" r="16" fill="none" stroke="var(--success)" strokeWidth="6" opacity="0.15" />
-                            <circle cx="48" cy="48" r="16" fill="none" stroke="var(--success)" strokeWidth="6" strokeDasharray="100" strokeDashoffset="33" strokeLinecap="round" />
-                          </svg>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    <Card className="border-border/60">
-                      <CardContent className="flex items-center gap-3 p-3">
-                        <Droplet className="size-6 text-info" />
-                        <div className="flex-1">
-                          <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                            Hydration
-                          </p>
-                          <p className="font-serif text-xl text-foreground">
-                            6 <span className="text-xs text-muted-foreground">/ 8</span>
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <LandingMockPreview />
           </FadeIn>
         </section>
 
-        {/* TRUST STRIP */}
+        {/* TRUST STRIP — three things, human language */}
         <section className="border-y border-border/40 bg-card/40 px-4 py-8 sm:px-6">
-          <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-around gap-x-6 gap-y-3 text-center text-xs uppercase tracking-[0.18em] text-muted-foreground">
+          <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-around gap-x-6 gap-y-3 text-center text-xs uppercase tracking-[0.18em] text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <Lock className="size-3.5" /> Encrypted
+              <Lock className="size-3.5" /> Your data, exportable
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="size-3.5" /> Export anytime
+              <ShieldCheck className="size-3.5" /> No card to start
             </span>
-            <span>No card required</span>
-            <span>No ads</span>
-            <span>Cancel anytime</span>
+            <span>Quiet by design</span>
           </div>
         </section>
 
-        {/* STATS */}
-        <section className="px-4 py-12 sm:px-6 sm:py-16">
-          <div className="mx-auto max-w-5xl">
-            <StaggerChildren className="grid gap-6 sm:grid-cols-4">
-              <StaggerItem className="text-center">
-                <p className="font-serif text-4xl text-foreground sm:text-5xl">
-                  <CountUp to={2} />
-                  <span className="text-primary">m</span>
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">to set up</p>
-              </StaggerItem>
-              <StaggerItem className="text-center">
-                <p className="font-serif text-4xl text-foreground sm:text-5xl">
-                  <CountUp to={10} suffix="s" />
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">per check-in</p>
-              </StaggerItem>
-              <StaggerItem className="text-center">
-                <p className="font-serif text-4xl text-foreground sm:text-5xl">
-                  <CountUp to={8} />
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">things to track</p>
-              </StaggerItem>
-              <StaggerItem className="text-center">
-                <p className="font-serif text-4xl text-foreground sm:text-5xl">
-                  <CountUp to={9} />
-                  <span className="text-primary">+</span>
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">focus areas</p>
-              </StaggerItem>
-            </StaggerChildren>
-          </div>
+        {/* HERO STAT — one number, not four */}
+        <section className="px-4 py-16 sm:px-6 sm:py-20">
+          <FadeIn className="mx-auto max-w-2xl text-center">
+            <p className="font-serif text-6xl tracking-tight text-foreground sm:text-7xl">
+              <CountUp to={10} suffix="s" />
+            </p>
+            <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+              That&rsquo;s all a daily check-in takes. Mood, energy, water — gone before your tea cools.
+            </p>
+          </FadeIn>
         </section>
 
         {/* HOW IT WORKS */}
