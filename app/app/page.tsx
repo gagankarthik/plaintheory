@@ -1,4 +1,13 @@
-import { ArrowRight, CalendarDays, Check, Flame, Lock, Repeat } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  Flame,
+  Lock,
+  Moon,
+  NotebookPen,
+  Repeat,
+  Sunrise,
+} from "lucide-react";
 import Link from "next/link";
 
 import { BreakGlassWidget } from "./_components/break-glass-widget";
@@ -29,6 +38,30 @@ const CATEGORY_EMOJI: Record<FocusAction["category"], string> = {
   stress: "🧘",
   sleep: "😴",
 };
+
+const SYMPTOM_EMOJI: Record<string, string> = {
+  mood: "🌤",
+  energy: "⚡",
+  focus: "🎯",
+  eat: "🥗",
+  relax: "🧘",
+  water: "💧",
+  sleep: "🌙",
+  weight: "⚖️",
+  note: "📝",
+};
+
+function timeAgo(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const mins = Math.round(diffMs / 60_000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hours = Math.round(mins / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
 
 function greeting(tzOffsetMin: number | null): string {
   const localMs = Date.now() - (tzOffsetMin ?? 0) * 60_000;
@@ -68,6 +101,8 @@ export default async function AppHome() {
   const waterToday = todayLogs.filter((l) => l.symptomType === "water").length;
   const hydrationTarget = user.onboarding.body?.hydrationTargetGlasses ?? 8;
   const streak = computeStreak(allLogs);
+  // Most recent log — skip water (it's already represented by the WaterBottle tile)
+  const lastLog = allLogs.find((l) => l.symptomType !== "water") ?? null;
 
   const isPlus = isPlusUser(user);
   const calmMode = isPlus && user.preferences?.calmMode === true;
@@ -300,9 +335,9 @@ export default async function AppHome() {
             className="col-span-2 rounded-3xl"
           />
 
-          {/* HABITS — full width */}
+          {/* HABITS (3-col) + LAST CHECK-IN (1-col) — rhythm break */}
           {activeHabits.length > 0 ? (
-            <div className="col-span-2 rounded-3xl border border-success/20 bg-gradient-to-br from-success/10 via-success/3 to-transparent p-4 sm:p-5 lg:col-span-4">
+            <div className="col-span-2 rounded-3xl border border-success/20 bg-gradient-to-br from-success/10 via-success/3 to-transparent p-4 sm:p-5 lg:col-span-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="inline-flex size-7 items-center justify-center rounded-2xl bg-success/15 text-success">
@@ -326,7 +361,11 @@ export default async function AppHome() {
                     / {activeHabits.length}
                   </span>
                 </p>
-                <p className="text-xs text-muted-foreground">done · keep the streak alive</p>
+                {!calmMode ? (
+                  <p className="text-xs text-muted-foreground">done · keep the streak alive</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground">done</p>
+                )}
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {activeHabits.slice(0, 6).map((h) => {
@@ -360,29 +399,104 @@ export default async function AppHome() {
             </div>
           ) : null}
 
-          {/* ROUTINES — full width, Plus only */}
-          {isPlus && plan?.routines && plan.routines.length > 0 ? (
-            <div className="col-span-2 rounded-3xl border border-border/60 bg-card p-5 sm:p-6 lg:col-span-4">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex size-7 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
-                  <CalendarDays className="size-3.5" />
-                </span>
-                <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
-                  Today&rsquo;s Routines
+          {/* LAST CHECK-IN — small accent tile */}
+          <Link
+            href="/app/log"
+            className={cn(
+              "group col-span-2 block",
+              activeHabits.length > 0 ? "lg:col-span-1" : "lg:col-span-4",
+            )}
+          >
+            <div className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-border/60 bg-card p-4 transition-all hover:border-primary/40 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0_/_0.08)] sm:p-5">
+              <div className="flex items-start justify-between">
+                <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Last check-in
                 </p>
+                <NotebookPen className="size-4 text-muted-foreground transition-colors group-hover:text-primary" />
               </div>
-              <div className="mt-4 grid gap-5 sm:grid-cols-2">
-                {plan.routines.map((routine) => (
-                  <div key={routine.title} className="space-y-2.5">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-foreground">{routine.title}</p>
+              {lastLog ? (
+                <>
+                  <div className="mt-3 flex items-center gap-2.5">
+                    <span className="text-3xl leading-none">
+                      {SYMPTOM_EMOJI[lastLog.symptomType] ?? "·"}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="font-serif text-xl capitalize leading-tight text-foreground sm:text-2xl">
+                        {lastLog.symptomType}
+                      </p>
+                      {typeof lastLog.severity === "number" ? (
+                        <p className="text-[11px] text-muted-foreground">
+                          severity {lastLog.severity}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <p className="mt-auto pt-3 text-[11px] text-muted-foreground">
+                    {timeAgo(lastLog.timestamp)}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="mt-3">
+                    <p className="font-serif text-xl text-muted-foreground sm:text-2xl">
+                      Nothing yet
+                    </p>
+                    <p className="mt-1 text-xs leading-snug text-muted-foreground">
+                      Log a mood to start the pattern.
+                    </p>
+                  </div>
+                </>
+              )}
+              <p className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary transition-transform group-hover:translate-x-0.5">
+                New log <ArrowRight className="size-2.5" />
+              </p>
+            </div>
+          </Link>
+
+          {/* ROUTINES — split into two tiles for rhythm (morning + evening), Plus only */}
+          {isPlus && plan?.routines && plan.routines.length > 0
+            ? plan.routines.slice(0, 2).map((routine, idx) => {
+                const isMorning = idx === 0 || routine.title.toLowerCase().includes("morning");
+                return (
+                  <div
+                    key={routine.title}
+                    className={cn(
+                      "col-span-2 rounded-3xl border p-5 sm:p-6 lg:col-span-2",
+                      isMorning
+                        ? "border-info/20 bg-gradient-to-br from-info/10 via-info/3 to-transparent"
+                        : "border-warning/20 bg-gradient-to-br from-warning/10 via-warning/3 to-transparent",
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={cn(
+                            "inline-flex size-7 items-center justify-center rounded-2xl",
+                            isMorning ? "bg-info/15 text-info" : "bg-warning/15 text-warning",
+                          )}
+                        >
+                          {isMorning ? (
+                            <Sunrise className="size-3.5" />
+                          ) : (
+                            <Moon className="size-3.5" />
+                          )}
+                        </span>
+                        <p
+                          className={cn(
+                            "text-[10px] uppercase tracking-[0.22em]",
+                            isMorning ? "text-info/80" : "text-warning/80",
+                          )}
+                        >
+                          {routine.title}
+                        </p>
+                      </div>
                       {routine.time ? (
                         <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                           {routine.time}
                         </span>
                       ) : null}
                     </div>
-                    <ol className="space-y-1.5">
+                    <ol className="mt-3 space-y-1.5">
                       {routine.steps.map((step, i) => (
                         <li
                           key={i}
@@ -396,10 +510,9 @@ export default async function AppHome() {
                       ))}
                     </ol>
                   </div>
-                ))}
-              </div>
-            </div>
-          ) : null}
+                );
+              })
+            : null}
 
           {/* BREAK GLASS — emergency re-sync, at the very bottom */}
           <BreakGlassWidget />
