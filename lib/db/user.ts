@@ -7,12 +7,26 @@ import { stripeCustomerGsiKey, userKey } from "./keys";
 
 export type SubscriptionPlan = "plusMonthly" | "plusYearly";
 
+/**
+ * Per-user preferences for Plus features. Kept separate from onboarding
+ * because these can change anytime and aren't part of the initial flow.
+ */
+export type UserPreferences = {
+  /**
+   * Calm Mode — hides streaks, badges, halfway/full-day celebrations,
+   * encouragement strings. For users burned out by gamification.
+   * Plus only.
+   */
+  calmMode?: boolean;
+};
+
 export type UserRecord = {
   userId: string;
   email: string;
   createdAt: string;
   updatedAt: string;
   onboarding: OnboardingState;
+  preferences?: UserPreferences;
   deletedAt?: string;
   stripeCustomerId?: string;
   subscriptionPlan?: SubscriptionPlan;
@@ -83,6 +97,21 @@ export async function updateOnboarding(
   const updated: UserRecord = {
     ...current,
     onboarding: { ...current.onboarding, ...patch },
+    updatedAt: new Date().toISOString(),
+  };
+  await ddb.send(new PutCommand({ TableName: getTableName(), Item: toItem(updated) }));
+  return updated;
+}
+
+export async function updatePreferences(
+  userId: string,
+  patch: Partial<UserPreferences>,
+): Promise<UserRecord> {
+  const current = await getUser(userId);
+  if (!current) throw new Error("User record not found");
+  const updated: UserRecord = {
+    ...current,
+    preferences: { ...(current.preferences ?? {}), ...patch },
     updatedAt: new Date().toISOString(),
   };
   await ddb.send(new PutCommand({ TableName: getTableName(), Item: toItem(updated) }));

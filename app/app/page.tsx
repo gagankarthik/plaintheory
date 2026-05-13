@@ -70,6 +70,7 @@ export default async function AppHome() {
   const streak = computeStreak(allLogs);
 
   const isPlus = isPlusUser(user);
+  const calmMode = isPlus && user.preferences?.calmMode === true;
   const allFocusActions = plan?.focusActions ?? [];
   const visibleActions = isPlus ? allFocusActions : allFocusActions.slice(0, FREE_PLAN_TASK_LIMIT);
   const hiddenActionCount = isPlus ? 0 : Math.max(0, allFocusActions.length - visibleActions.length);
@@ -109,7 +110,7 @@ export default async function AppHome() {
       />
 
       <div className="mx-auto w-full max-w-5xl space-y-5 px-4 py-5 sm:space-y-6 sm:px-6 sm:py-8">
-        <DailyDoneConfetti date={date} done={planDone} />
+        <DailyDoneConfetti date={date} done={planDone && !calmMode} />
 
         {/* Greeting bar */}
         <section className="flex flex-wrap items-center justify-between gap-3">
@@ -128,7 +129,9 @@ export default async function AppHome() {
               </h1>
             </div>
           </div>
-          <p className="hidden text-sm text-muted-foreground sm:block">{message}</p>
+          {!calmMode ? (
+            <p className="hidden text-sm text-muted-foreground sm:block">{message}</p>
+          ) : null}
         </section>
 
         {/* WIDGET GRID */}
@@ -154,7 +157,7 @@ export default async function AppHome() {
                         day: "numeric",
                       })}
                     </p>
-                    {streak > 0 ? (
+                    {streak > 0 && !calmMode ? (
                       <span className="inline-flex items-center gap-1 rounded-full border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning">
                         <Flame className="size-2.5" />
                         {streak}d

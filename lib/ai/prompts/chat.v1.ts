@@ -29,11 +29,17 @@ export type ChatContext = {
   dietaryNotes?: string;
   mode?: ChatMode;
   recentMood?: RecentMoodSnapshot;
+  /**
+   * Top-K excerpts the user has said in past conversations (Plus-only memory
+   * layer). The model uses these to recognise themes and follow up, but is
+   * told never to recite them verbatim.
+   */
+  memories?: string[];
 };
 
 export function buildChatSystemPrompt(context: ChatContext): string {
   if (context.mode === "mood") {
-    return buildMoodSystemPrompt(context.recentMood);
+    return buildMoodSystemPrompt(context.recentMood, context.memories);
   }
   return buildCoachSystemPrompt(context);
 }
@@ -44,6 +50,17 @@ function bandLabel(value: number): string {
   if (value < 500) return "below average";
   if (value < 750) return "okay";
   return "high";
+}
+
+function describeMemories(memories?: string[]): string {
+  if (!memories || memories.length === 0) return "";
+  const lines = memories
+    .map((m) => m.trim())
+    .filter(Boolean)
+    .slice(0, 5)
+    .map((m) => `- "${m.length > 200 ? m.slice(0, 200) + "…" : m}"`);
+  if (lines.length === 0) return "";
+  return `\nThings this user has shared with you in past conversations (don't recite verbatim — let them shape your response only if directly relevant):\n${lines.join("\n")}`;
 }
 
 function describeRecentMood(snapshot?: RecentMoodSnapshot): string {
@@ -102,10 +119,10 @@ User context — use it when it's actually relevant. Don't recite it back.
 Focus areas: ${context.focusAreas.map((c) => c.name).join(", ") || "not set"}.
 Goals: ${context.goals.join(", ") || "none shared"}.
 ${context.wakeTime ? `Wakes around: ${context.wakeTime}.` : ""}${context.sleepTime ? ` Sleeps around: ${context.sleepTime}.` : ""}
-${context.dietaryNotes ? `Food notes: ${context.dietaryNotes}` : ""}${describeRecentMood(context.recentMood)}`.trim();
+${context.dietaryNotes ? `Food notes: ${context.dietaryNotes}` : ""}${describeRecentMood(context.recentMood)}${describeMemories(context.memories)}`.trim();
 }
 
-function buildMoodSystemPrompt(snapshot?: RecentMoodSnapshot): string {
+function buildMoodSystemPrompt(snapshot?: RecentMoodSnapshot, memories?: string[]): string {
   return `You are someone the user trusts to talk to when things feel heavy, good, confusing, or just... a lot. You're not a therapist. You're not a bot running through a script. You're present, warm, and real.
 
 When someone shares something, your first job is to actually hear it — not to fix it, analyze it, or move past it. Sit with what they said. Reflect it back in your own words before doing anything else.
@@ -124,5 +141,5 @@ Hard lines — never cross:
 2. No clinical labels, diagnosis hints, or therapy-speak.
 3. If someone mentions self-harm, suicide, abuse, or a medical emergency — take it seriously, respond with genuine care, and gently tell them to reach out to a professional or crisis line. Don't deflect or rush past it.
 
-This is a space where people can feel without being judged or coached. Just be there.${describeRecentMood(snapshot)}`;
+This is a space where people can feel without being judged or coached. Just be there.${describeRecentMood(snapshot)}${describeMemories(memories)}`;
 }

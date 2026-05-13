@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { PutCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { PutCommand, QueryCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 import { ddb, getTableName } from "./client";
 import { threadKey, threadMessageKey, threadMessagePrefix, userScopePK } from "./keys";
@@ -26,6 +26,8 @@ export type ChatMessage = {
   };
   model?: string;
   promptVersion?: string;
+  /** Embedding of `content` — used by the Plus-only semantic memory layer. */
+  embedding?: number[];
 };
 
 export async function createThread(
@@ -96,4 +98,55 @@ export async function listMessages(userId: string, threadId: string): Promise<Ch
 function stripKeys<T>(item: Record<string, unknown>): T {
   const { PK: _pk, SK: _sk, ...rest } = item as { PK: string; SK: string } & T;
   return rest as T;
+}
+
+/**
+ * Sets an embedding on an existing message in-place. Used by the Plus-only
+ * semantic memory layer — embeddings are written async after the message is
+ * appended so they never block the chat reply.
+ */
+export async function setMessageEmbedding(
+  userId: string,
+  threadId: string,
+  timestamp: string,
+  embedding: number[],
+): Promise<void> {
+  await ddb.send(
+    new UpdateCommand({
+      TableName: getTableName(),
+      Key: threadMessageKey(userId, threadId, timestamp),
+      UpdateExpression: "SET #e = :e",
+      ExpressionAttributeNames: { "#e": "embedding" },
+      ExpressionAttributeValues: { ":e": embedding },
+    }),
+  );
+}
+
+/**
+ * Returns recent user-role messages across all of the user's threads, newest
+ * first. Used as the candidate pool for semantic-memory retrieval.
+ */
+export async function listRecentUserMessages(
+  userId: string,
+  limit = 200,
+): Promise<ChatMessage[]> {
+  // Pull a window of items under the THREAD# prefix (mixed thread metadata +
+  // messages). Filter to user-role messages in code.
+  const res = await ddb.send(
+    new QueryCommand({
+      TableName: getTableName(),
+      KeyConditionExpression: "PK = :pk AND begins_with(SK, :prefix)",
+      ExpressionAttributeValues: {
+        ":pk": userScopePK(userId),
+        ":prefix": "THREAD#",
+      },
+      ScanIndexForward: false,
+      Limit: Math.min(1000, limit * 4),
+    }),
+  );
+  const items = (res.Items ?? [])
+    .filter((i) => (i.SK as string).includes("#MSG#"))
+    .map((i) => stripKeys<ChatMessage>(i))
+    .filter((m) => m.role === "user");
+  return items.slice(0, limit);
 }

@@ -19,6 +19,7 @@ import {
   type CheckinActivity,
   type DayPoint,
 } from "./_components/insights-charts";
+import { WeeklyDigestCard } from "./_components/weekly-digest-card";
 
 export const dynamic = "force-dynamic";
 
@@ -189,6 +190,8 @@ export default async function InsightsPage() {
         planActions={{ value: todayCompleted, target: todayPlanTotal || 1 }}
         serverDate={today}
       />
+
+      <WeeklyDigestCard isPlus={isPlus} />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Kpi

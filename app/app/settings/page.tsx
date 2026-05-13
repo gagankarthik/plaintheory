@@ -9,6 +9,7 @@ import { getUser, isPlusUser } from "@/lib/db/user";
 
 import { AccountSettings } from "./_components/account-settings";
 import { BillingSection } from "./_components/billing-section";
+import { CalmModeToggle } from "./_components/calm-mode-toggle";
 import { DeleteAccountButton } from "./_components/delete-account-button";
 import { NotificationsSettings } from "./_components/notifications-settings";
 import { SyncOnSuccess } from "./_components/sync-on-success";
@@ -76,13 +77,22 @@ export default async function SettingsPage({
 
       <Card className="border-border/60">
         <CardHeader className="px-6 pt-6 pb-2">
-          <CardTitle className="text-lg">Notifications</CardTitle>
+          <CardTitle className="text-lg">Experience</CardTitle>
           <CardDescription>
-            Choose how PlainTheory stays in touch. You can change these anytime.
+            Tune how PlainTheory feels day to day.
           </CardDescription>
         </CardHeader>
-        <CardContent className="px-6 pb-6">
-          <NotificationsSettings initial={user?.onboarding?.notifications} />
+        <CardContent className="space-y-6 px-6 pb-6">
+          <CalmModeToggle
+            initialEnabled={user?.preferences?.calmMode ?? false}
+            isPlus={user ? isPlusUser(user) : false}
+          />
+          <div className="border-t border-border/40 pt-5">
+            <p className="mb-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
+              Notifications
+            </p>
+            <NotificationsSettings initial={user?.onboarding?.notifications} />
+          </div>
         </CardContent>
       </Card>
 

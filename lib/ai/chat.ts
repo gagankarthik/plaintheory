@@ -1,9 +1,17 @@
 import { getConditions } from "@/lib/conditions";
-import { appendMessage, createThread, listMessages, type ChatMessage } from "@/lib/db/chat";
+import {
+  appendMessage,
+  createThread,
+  listMessages,
+  listRecentUserMessages,
+  setMessageEmbedding,
+  type ChatMessage,
+} from "@/lib/db/chat";
 import { listSymptomLogs, type SymptomLog } from "@/lib/db/symptoms";
 import { incrementDailyUsage, UsageLimitExceededError } from "@/lib/db/usage";
 import { getUser, isPlusUser } from "@/lib/db/user";
 
+import { embed, topKMemories } from "./embeddings";
 import { openaiProvider } from "./openai";
 import { looksEmergency } from "./crisis";
 import {
@@ -101,7 +109,24 @@ export async function sendChatMessage(
   }
 
   const conditions = getConditions(user.onboarding.conditions ?? []);
-  const recentMood = await getRecentMoodSnapshot(userId);
+
+  // Plus-only: kick off embedding generation + memory candidate fetch in parallel.
+  const plusUser = isPlusUser(user);
+  const queryEmbeddingPromise: Promise<number[]> = plusUser ? embed(content) : Promise.resolve([]);
+  const candidatesPromise: Promise<ChatMessage[]> = plusUser
+    ? listRecentUserMessages(userId, 200)
+    : Promise.resolve([]);
+
+  const [recentMood, queryEmbedding, candidates] = await Promise.all([
+    getRecentMoodSnapshot(userId),
+    queryEmbeddingPromise,
+    candidatesPromise,
+  ]);
+
+  const memories = plusUser
+    ? topKMemories(queryEmbedding, candidates, { k: 3, minScore: 0.5 }).map((m) => m.content)
+    : [];
+
   const system = buildChatSystemPrompt({
     focusAreas: conditions,
     goals: user.onboarding.goals ?? [],
@@ -110,6 +135,7 @@ export async function sendChatMessage(
     ...(user.onboarding.medications ? { dietaryNotes: user.onboarding.medications } : {}),
     ...(options.mode ? { mode: options.mode } : {}),
     ...(recentMood ? { recentMood } : {}),
+    ...(memories.length > 0 ? { memories } : {}),
   });
 
   let threadId = options.threadId;
@@ -123,6 +149,7 @@ export async function sendChatMessage(
     threadId,
     role: "user",
     content,
+    ...(queryEmbedding.length > 0 ? { embedding: queryEmbedding } : {}),
   });
 
   // Cap history at MAX_HISTORY_TURNS to keep token costs bounded.

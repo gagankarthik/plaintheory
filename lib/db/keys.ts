@@ -67,6 +67,13 @@ export const usageKey = (userId: string, date: string) => ({
   SK: `USAGE#${date}`,
 });
 
+export const digestKey = (userId: string, weekStart: string) => ({
+  PK: userPK(userId),
+  SK: `DIGEST#${weekStart}`,
+});
+
+export const digestPrefix = "DIGEST#";
+
 export const stripeCustomerGsiKey = (stripeCustomerId: string) => ({
   GSI1PK: `STRIPECUS#${stripeCustomerId}`,
   GSI1SK: STRIPE_GSI1SK,

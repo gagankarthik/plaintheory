@@ -42,7 +42,15 @@ const COMPLETION_TOASTS = [
   "Seven. You showed up fully.",
 ];
 
-export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean }) {
+export function PlanView({
+  plan,
+  isPlus,
+  calmMode = false,
+}: {
+  plan: DailyPlan;
+  isPlus: boolean;
+  calmMode?: boolean;
+}) {
   const [actions, setActions] = useState<FocusAction[]>(plan.focusActions);
   const [completed, setCompleted] = useState<Set<string>>(
     new Set(plan.completedActionIds ?? []),
@@ -68,15 +76,18 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
   const wasAllDone = useRef(allDone);
   useEffect(() => {
     if (allDone && !wasAllDone.current) {
-      setConfettiActive(true);
-      const t = setTimeout(() => setConfettiActive(false), 2600);
+      if (!calmMode) {
+        setConfettiActive(true);
+        const t = setTimeout(() => setConfettiActive(false), 2600);
+        wasAllDone.current = true;
+        return () => clearTimeout(t);
+      }
       wasAllDone.current = true;
-      return () => clearTimeout(t);
     }
     if (!allDone) {
       wasAllDone.current = false;
     }
-  }, [allDone]);
+  }, [allDone, calmMode]);
 
   const submitNew = async () => {
     const text = newText.trim();
@@ -145,7 +156,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
             </div>
             <div className="flex items-center justify-between text-xs text-muted-foreground">
               <span>{pct}% complete</span>
-              {doneCount > 0 && !allDone ? (
+              {doneCount > 0 && !allDone && !calmMode ? (
                 <span className="flex items-center gap-1 text-primary">
                   <Sparkles className="size-3" />
                   Keep going.
@@ -156,8 +167,8 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
         </CardContent>
       </Card>
 
-      {/* All-done */}
-      {allDone ? (
+      {/* All-done — suppressed in Calm Mode */}
+      {allDone && !calmMode ? (
         <Card className="border-success/40 bg-gradient-to-br from-success/10 via-success/5 to-transparent">
           <CardContent className="flex items-center gap-4 px-5 py-5 sm:px-6 sm:py-6">
             <div className="inline-flex size-14 shrink-0 items-center justify-center rounded-2xl bg-success/15 text-success">
@@ -175,8 +186,8 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
         </Card>
       ) : null}
 
-      {/* Halfway nudge */}
-      {halfwayJustHit && !allDone ? (
+      {/* Halfway nudge — suppressed in Calm Mode */}
+      {halfwayJustHit && !allDone && !calmMode ? (
         <Card className="border-primary/30 bg-primary/5">
           <CardContent className="flex items-center gap-3 px-5 py-4">
             <PartyPopper className="size-5 text-primary" />
@@ -206,7 +217,7 @@ export function PlanView({ plan, isPlus }: { plan: DailyPlan; isPlus: boolean })
                   const wasComplete = prev.size === total;
                   if (next) {
                     updated.add(action.id);
-                    if (!wasComplete) {
+                    if (!wasComplete && !calmMode) {
                       if (updated.size === total) {
                         toast.success("Full day. All tasks done.", { icon: "🏆" });
                       } else {

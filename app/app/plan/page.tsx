@@ -32,6 +32,7 @@ export default async function PlanPage({
   if (!user || user.onboarding.step !== "complete") redirect("/onboarding");
 
   const isPlus = isPlusUser(user);
+  const calmMode = isPlus && user.preferences?.calmMode === true;
 
   const date = await getLocalDate();
   let plan = await getPlan(session.userId, date);
@@ -62,7 +63,9 @@ export default async function PlanPage({
       ) : null}
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
         <div className="min-w-0 flex-1">
-          {plan ? <PlanView key={plan.date} plan={plan} isPlus={isPlus} /> : null}
+          {plan ? (
+            <PlanView key={plan.date} plan={plan} isPlus={isPlus} calmMode={calmMode} />
+          ) : null}
         </div>
         <div className="w-full lg:w-80 lg:shrink-0">
           <RoutinesSidebar routines={routines} isPlus={isPlus} />
