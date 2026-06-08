@@ -152,7 +152,7 @@ export function BreakGlassWidget() {
           <div className="flex items-center gap-2">
             <AlertTriangle className="size-4 text-destructive" />
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-destructive">
-              Emergency
+              Sync recovery
             </p>
           </div>
           <Hammer className="size-4 text-destructive/70 transition-transform group-hover:rotate-12" />

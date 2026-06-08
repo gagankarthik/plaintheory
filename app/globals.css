@@ -275,3 +275,49 @@ body::before {
   0%, 100% { transform: scale(1); opacity: 1; }
   50%      { transform: scale(1.2); opacity: 0.65; }
 }
+
+/* Emergency button — soft attention ring */
+@keyframes emergency-ring {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.55 0.18 25 / 0.45); }
+  50%      { box-shadow: 0 0 0 8px oklch(0.55 0.18 25 / 0); }
+}
+.emergency-ring { animation: emergency-ring 2600ms ease-in-out infinite; }
+
+/* Breathing guide — 4s in, hold, 4s out (box-breathing feel) */
+@keyframes breathe {
+  0%   { transform: scale(0.55); opacity: 0.55; }
+  45%  { transform: scale(1);    opacity: 1; }
+  55%  { transform: scale(1);    opacity: 1; }
+  100% { transform: scale(0.55); opacity: 0.55; }
+}
+.animate-breathe { animation: breathe 8s ease-in-out infinite; }
+
+/* Respect reduced-motion: silence the looping attention/breathing animations */
+@media (prefers-reduced-motion: reduce) {
+  .emergency-ring,
+  .animate-breathe {
+    animation: none;
+  }
+}
+
+/* Instrument Serif — cinematic landing display face */
+.font-instrument {
+  font-family: var(--font-instrument), Georgia, "Times New Roman", serif;
+}
+
+/* Landing hero entrance */
+@keyframes fade-rise {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-rise { animation: fade-rise 0.8s ease-out both; }
+.animate-fade-rise-delay { animation: fade-rise 0.8s ease-out 0.2s both; }
+.animate-fade-rise-delay-2 { animation: fade-rise 0.8s ease-out 0.4s both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-rise,
+  .animate-fade-rise-delay,
+  .animate-fade-rise-delay-2 {
+    animation: none;
+  }
+}

@@ -6,7 +6,7 @@ import { CookieConsent } from "@/components/cookie-consent";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { AmplifyProvider } from "@/lib/auth/amplify-provider";
-import { fontSans, fontSerif } from "@/lib/fonts";
+import { fontDisplay, fontSans, fontSerif } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
 const SITE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.theplaintheory.in";
@@ -143,7 +143,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn(fontSans.variable, fontSerif.variable)}
+      className={cn(fontSans.variable, fontSerif.variable, fontDisplay.variable)}
     >
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
         <script

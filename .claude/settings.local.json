@@ -29,7 +29,9 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\gagan\\\\Desktop\\\\Projects\\\\plaintheory\" -Recurse -Name)",
       "Bash(Select-String -Pattern \"\\(lib|api\\)\")",
       "Bash(Select-Object -First 20)",
-      "Bash(git mv *)"
+      "Bash(git mv *)",
+      "Bash(npx eslint *)",
+      "Bash(grep -iE \"error|fail|✓ Compiled|✗|○ /$|landing\")"
     ]
   },
   "enabledPlugins": {

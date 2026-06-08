@@ -34,6 +34,7 @@ All user-owned data shares the same `PK = USER#<userId>` so a single Query can f
 | Chat message        | `THREAD#<threadId>#MSG#<isoTimestamp>` | Messages stored under the thread prefix so we can Query a single thread.                         |
 | Audit log           | `AUDIT#<isoTimestamp>#<entryId>`       | Append-only. Retention 1 year via TTL.                                                           |
 | Daily usage counter | `USAGE#<YYYY-MM-DD>`                   | Chat rate-limit counter. TTL 48h.                                                                |
+| Finance entry       | `FINANCE#<isoTimestamp>#<entryId>`     | Personal finance ledger row (expense/earning/savings). ISO sorts lex; newest-first via ScanIndexForward=false. |
 
 ## GSI1 access patterns (sparse)
 
@@ -76,6 +77,15 @@ The full list of every read/write the app does. Each maps to a single-table oper
 | 12  | Mark habit complete                       | `PutItem(SK=HABITDONE#date#habitId)`                                |
 | 13  | List completions in date range            | `Query(PK=USER#id, SK BETWEEN HABITDONE#<from> AND HABITDONE#<to>)` |
 | 14  | Get streak (consecutive days for a habit) | derived from #13 client-side                                        |
+
+### Finance entries
+
+| #   | Pattern                          | Operation                                                                       |
+| --- | -------------------------------- | ------------------------------------------------------------------------------- |
+| 14a | Add finance entry                | `PutItem(SK=FINANCE#<isoTimestamp>#<entryId>)`                                   |
+| 14b | List entries (newest first)      | `Query(PK=USER#id, SK begins_with FINANCE#, ScanIndexForward=false, Limit=N)`    |
+| 14c | Delete an entry                  | `DeleteItem(SK=FINANCE#<createdAt>#<entryId>)` — createdAt passed alongside id   |
+| 14d | Totals / by-category / by-bank   | derived from 14b client-side                                                     |
 
 ### Daily plans
 

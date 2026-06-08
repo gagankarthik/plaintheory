@@ -1,12 +1,13 @@
 import { FileDown, Lock, Sparkles } from "lucide-react";
 import Link from "next/link";
 
-import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getCurrentUser } from "@/lib/auth/session";
 import { getUser, isPlusUser } from "@/lib/db/user";
+import { displayName } from "@/lib/user-display";
 
+import { AccountHeader } from "../_components/account-header";
 import { AccountSettings } from "./_components/account-settings";
 import { BillingSection } from "./_components/billing-section";
 import { CalmModeToggle } from "./_components/calm-mode-toggle";
@@ -39,16 +40,12 @@ export default async function SettingsPage({
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-6 sm:px-6 sm:py-8">
       <SyncOnSuccess status={params.checkout ?? ""} />
-      <header className="flex items-center gap-4">
-        <Avatar seed={email} size={56} className="size-14" />
-        <div className="space-y-1">
-          <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-            Settings
-          </p>
-          <h1 className="font-serif text-3xl tracking-tight">Settings</h1>
-          <p className="text-sm text-muted-foreground">{email}</p>
-        </div>
-      </header>
+      <AccountHeader
+        name={displayName(email)}
+        email={email}
+        plan={planLabel}
+        isPlus={user ? isPlusUser(user) : false}
+      />
 
       <Card className="border-border/60">
         <CardHeader className="px-6 pt-6 pb-2">

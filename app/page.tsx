@@ -1,7 +1,7 @@
 import {
   ArrowRight,
+  BarChart3,
   Calendar,
-  Check,
   Compass,
   Droplet,
   Leaf,
@@ -17,13 +17,13 @@ import {
   Sparkles,
   Star,
   Sun,
+  Wallet,
   Zap,
 } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LogoMark, LogoWithWordmark } from "@/components/brand/logo";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -37,16 +37,17 @@ import {
   StaggerChildren,
   StaggerItem,
 } from "./_components/landing-motion";
-import { HeroBackground, SectionDots } from "./_components/landing-bg";
-import { LandingMockPreview } from "./_components/landing-mock-preview";
+import { CinematicHero } from "./_components/cinematic-hero";
+import { SectionDots } from "./_components/landing-bg";
+import { LandingHeader } from "./_components/landing-header";
 
 export const metadata: Metadata = {
-  title: "PlainTheory — A calm daily coaching companion",
+  title: "PlainTheory — A calm daily companion for life & money",
   description:
-    "Wake up to a gentle plan, chat with a coach who knows you, and see what's working in a quiet weekly review. Free to start.",
+    "Wake to a gentle plan, track mood and money in seconds, and see what's working in a quiet review. Free to start.",
   openGraph: {
-    title: "PlainTheory — A calm daily coaching companion",
-    description: "Gentle morning plans. A coach that knows you. A quiet weekly review.",
+    title: "PlainTheory — A calm daily companion for life & money",
+    description: "Gentle morning plans. Mood & money tracking. A coach that knows you.",
     type: "website",
   },
 };
@@ -59,143 +60,102 @@ export default async function LandingPage() {
 
   return (
     <div className="relative flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-40 border-b border-border/40 bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6 sm:py-4">
-          <Link href="/" className="transition-colors hover:text-primary">
-            <LogoWithWordmark />
-          </Link>
-          <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
-            <a href="#how" className="hover:text-foreground">How it works</a>
-            <Link href="/pricing" className="hover:text-foreground">Pricing</Link>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
-          </nav>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {signedIn ? (
-              <Link href="/app">
-                <Button size="sm">Open app <ArrowRight className="size-3.5" /></Button>
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/sign-in"
-                  className="hidden text-sm font-medium underline-offset-4 hover:underline sm:inline-block"
-                >
-                  Sign in
-                </Link>
-                <Link href="/sign-up">
-                  <Button size="sm">Get started</Button>
-                </Link>
-              </>
-            )}
-            <ThemeToggle />
-          </div>
-        </div>
-      </header>
+      {/* ── HEADER ───────────────────────────────────────────── */}
+      <LandingHeader signedIn={signedIn} />
 
       <main className="flex-1">
-        {/* HERO with mock preview */}
-        <section className="relative overflow-hidden px-4 pb-16 pt-10 sm:px-6 sm:pb-24 sm:pt-16 lg:pt-24">
-          <HeroBackground />
-          <div className="mx-auto max-w-3xl text-center">
-            <FadeIn>
-              <Badge variant="primary" className="mb-5 sm:mb-6">
-                <Sparkles className="size-3" /> Now in private beta
-              </Badge>
-            </FadeIn>
-            <FadeIn delay={0.05}>
-              <h1 className="font-serif text-[2.5rem] leading-[1.05] tracking-tight sm:text-6xl md:text-7xl">
-                A calm companion for the life you&rsquo;re building.
-              </h1>
-            </FadeIn>
-            <FadeIn delay={0.15}>
-              <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground sm:mt-6 sm:text-lg">
-                Wake to a gentle plan. Track mood, water, sleep, weight in 10 seconds. Chat
-                with a coach that actually remembers what matters to you.
-              </p>
-            </FadeIn>
-            <FadeIn delay={0.25}>
-              <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:mt-10 sm:flex-row sm:items-center">
-                {signedIn ? (
-                  <Link href="/app">
-                    <Button size="lg" className="w-full sm:w-auto sm:min-w-[200px]">
-                      Open your dashboard <ArrowRight />
-                    </Button>
-                  </Link>
-                ) : (
-                  <>
-                    <Link href="/sign-up">
-                      <Button size="lg" className="w-full sm:w-auto sm:min-w-[180px]">
-                        Start free <ArrowRight />
-                      </Button>
-                    </Link>
-                    <Link href="#how">
-                      <Button size="lg" variant="ghost" className="w-full sm:w-auto sm:min-w-[180px]">
-                        See how it works
-                      </Button>
-                    </Link>
-                  </>
-                )}
-              </div>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Free forever for the basics · No card required · 2 minutes to set up
-              </p>
-            </FadeIn>
-          </div>
+        {/* ── CINEMATIC VIDEO HERO ───────────────────────────── */}
+        <CinematicHero signedIn={signedIn} />
 
-          {/* MOCK PREVIEW — single card, scroll-triggered animation */}
-          <FadeIn delay={0.4}>
-            <LandingMockPreview />
-          </FadeIn>
-        </section>
-
-        {/* TRUST STRIP — three things, human language */}
-        <section className="border-y border-border/40 bg-card/40 px-4 py-8 sm:px-6">
+        {/* ── TRUST STRIP ────────────────────────────────────── */}
+        <section className="border-y border-border/40 bg-card/40 px-4 py-7 sm:px-6">
           <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-around gap-x-6 gap-y-3 text-center text-xs uppercase tracking-[0.18em] text-muted-foreground">
             <span className="inline-flex items-center gap-1.5">
-              <Lock className="size-3.5" /> Your data, exportable
+              <ShieldCheck className="size-3.5" /> Free to start, no card
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <ShieldCheck className="size-3.5" /> No card to start
+              <Lock className="size-3.5" /> Export or delete anytime
             </span>
-            <span>Quiet by design</span>
+            <span>Coaching, not medical advice</span>
           </div>
         </section>
 
-        {/* HERO STAT — one number, not four */}
-        <section className="px-4 py-16 sm:px-6 sm:py-20">
-          <FadeIn className="mx-auto max-w-2xl text-center">
-            <p className="font-serif text-6xl tracking-tight text-foreground sm:text-7xl">
-              <CountUp to={10} suffix="s" />
-            </p>
-            <p className="mt-3 text-base text-muted-foreground sm:text-lg">
-              That&rsquo;s all a daily check-in takes. Mood, energy, water — gone before your tea cools.
-            </p>
-          </FadeIn>
-        </section>
-
-        {/* HOW IT WORKS */}
-        <section id="how" className="relative border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24">
-          <SectionDots />
-          <div className="mx-auto max-w-5xl space-y-10 sm:space-y-12">
-            <FadeIn className="text-center">
+        {/* ── BENTO FEATURES ─────────────────────────────────── */}
+        <section id="features" className="relative scroll-mt-20 px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mx-auto max-w-6xl space-y-10 sm:space-y-14">
+            <FadeIn className="mx-auto max-w-2xl text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                How it works
+                Everything in one place
               </p>
-              <h2 className="mt-3 font-serif text-3xl tracking-tight sm:text-4xl">
-                Three small commitments. The rest takes care of itself.
+              <h2 className="mt-3 font-serif text-3xl tracking-tight sm:text-5xl">
+                Gentle structure for unstructured days.
               </h2>
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                Plans, check-ins, a coach, and money — designed to be calm, not noisy.
+              </p>
             </FadeIn>
-            <StaggerChildren className="grid gap-5 sm:grid-cols-3">
-              {STEPS.map((s) => (
-                <StaggerItem key={s.n}>
-                  <HoverLift>
-                    <div className="space-y-3 rounded-3xl border border-border/60 bg-card p-6">
-                      <p className="font-serif text-xl text-primary">{s.n}</p>
-                      <h3 className="font-serif text-xl tracking-tight">{s.title}</h3>
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {s.description}
-                      </p>
+
+            {/* Bento grid */}
+            <StaggerChildren className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Large: morning plan */}
+              <StaggerItem className="sm:col-span-2 lg:row-span-2">
+                <HoverLift className="h-full">
+                  <div className="group relative flex h-full min-h-[260px] flex-col overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/12 via-primary/4 to-transparent p-6 sm:p-8">
+                    <div className="inline-flex size-11 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+                      <Sun className="size-5" />
                     </div>
+                    <h3 className="mt-5 font-serif text-2xl tracking-tight sm:text-3xl">
+                      A morning plan that fits.
+                    </h3>
+                    <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground sm:text-base">
+                      Three focus tasks tied to the areas you care about, your goals, your
+                      rhythm, and your body — generated fresh each day.
+                    </p>
+                    <div className="mt-auto flex flex-wrap gap-2 pt-6">
+                      {["Focus tasks", "Hydration", "Mood", "Routines"].map((t) => (
+                        <span
+                          key={t}
+                          className="rounded-full border border-primary/20 bg-background/60 px-3 py-1 text-xs text-foreground"
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </HoverLift>
+              </StaggerItem>
+
+              {/* Finance — the new feature */}
+              <StaggerItem className="sm:col-span-2 lg:col-span-1">
+                <HoverLift className="h-full">
+                  <div className="relative flex h-full flex-col overflow-hidden rounded-3xl border border-info/20 bg-gradient-to-br from-info/12 via-info/4 to-transparent p-6">
+                    <div className="inline-flex size-10 items-center justify-center rounded-xl bg-info/15 text-info">
+                      <Wallet className="size-5" />
+                    </div>
+                    <h3 className="mt-4 font-serif text-xl tracking-tight">Money, made calm</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                      Log earnings, expenses, and savings. See daily, monthly, and yearly
+                      reports with clean infographics.
+                    </p>
+                    <Badge variant="info" className="mt-4 w-fit">New</Badge>
+                  </div>
+                </HoverLift>
+              </StaggerItem>
+
+              {FEATURES.map((f) => (
+                <StaggerItem key={f.title}>
+                  <HoverLift className="h-full">
+                    <Card className="h-full bg-card/60 transition-shadow duration-300 hover:bg-card hover:shadow-[0_2px_4px_0_rgb(0_0_0_/_0.04),0_24px_40px_-20px_rgb(0_0_0_/_0.08)]">
+                      <CardContent className="flex h-full flex-col gap-3 p-6">
+                        <div className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                          {f.icon}
+                        </div>
+                        <h3 className="font-serif text-xl tracking-tight">{f.title}</h3>
+                        <p className="text-sm leading-relaxed text-muted-foreground">
+                          {f.description}
+                        </p>
+                      </CardContent>
+                    </Card>
                   </HoverLift>
                 </StaggerItem>
               ))}
@@ -203,21 +163,22 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* WHAT YOU CAN TRACK */}
-        <section className="px-4 py-20 sm:px-6 sm:py-24">
+        {/* ── WHAT YOU CAN TRACK ─────────────────────────────── */}
+        <section className="relative border-y border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24">
+          <SectionDots />
           <div className="mx-auto max-w-5xl space-y-10">
             <FadeIn className="text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
                 What you can track
               </p>
               <h2 className="mt-3 font-serif text-3xl tracking-tight sm:text-4xl">
-                Eight signals. Ten seconds each.
+                Nine signals. Ten seconds each.
               </h2>
               <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 Tap a number, add a note, done. Patterns emerge in a week.
               </p>
             </FadeIn>
-            <StaggerChildren className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <StaggerChildren className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
               {TRACKABLES.map((t) => (
                 <StaggerItem key={t.label}>
                   <HoverLift>
@@ -235,36 +196,30 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section
-          id="features"
-          className="relative border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24"
-        >
-          <SectionDots />
-          <div className="mx-auto max-w-5xl space-y-10">
+        {/* ── HOW IT WORKS ───────────────────────────────────── */}
+        <section id="how" className="scroll-mt-20 px-4 py-20 sm:px-6 sm:py-28">
+          <div className="mx-auto max-w-5xl space-y-12">
             <FadeIn className="text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                What you&rsquo;ll get
+                How it works
               </p>
               <h2 className="mt-3 font-serif text-3xl tracking-tight sm:text-4xl">
-                Gentle structure for unstructured days.
+                Three small commitments. The rest takes care of itself.
               </h2>
             </FadeIn>
-            <StaggerChildren className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {FEATURES.map((f) => (
-                <StaggerItem key={f.title}>
+            <StaggerChildren className="grid gap-5 sm:grid-cols-3">
+              {STEPS.map((s) => (
+                <StaggerItem key={s.n}>
                   <HoverLift className="h-full">
-                    <Card className="h-full bg-card/60 transition-shadow duration-300 hover:bg-card hover:shadow-[0_2px_4px_0_rgb(0_0_0_/_0.04),0_24px_40px_-20px_rgb(0_0_0_/_0.08)]">
-                      <CardContent className="space-y-3 p-6">
-                        <div className="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                          {f.icon}
-                        </div>
-                        <h3 className="font-serif text-xl tracking-tight">{f.title}</h3>
-                        <p className="text-sm leading-relaxed text-muted-foreground">
-                          {f.description}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <div className="relative h-full space-y-3 rounded-3xl border border-border/60 bg-card p-6">
+                      <span className="inline-flex size-10 items-center justify-center rounded-2xl bg-primary/10 font-serif text-lg text-primary">
+                        {s.n}
+                      </span>
+                      <h3 className="font-serif text-xl tracking-tight">{s.title}</h3>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        {s.description}
+                      </p>
+                    </div>
                   </HoverLift>
                 </StaggerItem>
               ))}
@@ -272,55 +227,23 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* COMPARISON */}
-        <section id="compare" className="px-4 py-20 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-4xl space-y-10">
-            <FadeIn className="text-center">
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                Why PlainTheory
-              </p>
-              <h2 className="mt-3 font-serif text-3xl tracking-tight sm:text-4xl">
-                Different from the rest. Quieter, smarter, yours.
-              </h2>
-            </FadeIn>
-            <FadeIn delay={0.1}>
-              <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border/40 text-xs uppercase tracking-[0.15em] text-muted-foreground">
-                      <th className="px-4 py-3 text-left font-medium sm:px-6"></th>
-                      <th className="px-4 py-3 text-center font-medium text-primary sm:px-6">
-                        PlainTheory
-                      </th>
-                      <th className="px-4 py-3 text-center font-medium sm:px-6">Paper journal</th>
-                      <th className="px-4 py-3 text-center font-medium sm:px-6">Generic planner</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-foreground">
-                    {COMPARE.map((row) => (
-                      <tr key={row.label} className="border-b border-border/30 last:border-0">
-                        <td className="px-4 py-3 sm:px-6">{row.label}</td>
-                        <td className="px-4 py-3 text-center sm:px-6">
-                          <Check className="mx-auto size-4 text-success" />
-                        </td>
-                        <td className="px-4 py-3 text-center text-muted-foreground sm:px-6">
-                          {row.paper}
-                        </td>
-                        <td className="px-4 py-3 text-center text-muted-foreground sm:px-6">
-                          {row.planner}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </FadeIn>
+        {/* ── STAT BAND ──────────────────────────────────────── */}
+        <section className="relative overflow-hidden border-y border-border/40 px-4 py-16 sm:px-6 sm:py-20">
+          <SectionDots />
+          <div className="mx-auto grid max-w-4xl gap-8 text-center sm:grid-cols-3">
+            {STATS.map((s) => (
+              <FadeIn key={s.label}>
+                <p className="font-serif text-5xl tracking-tight text-foreground sm:text-6xl">
+                  <CountUp to={s.to} suffix={s.suffix} />
+                </p>
+                <p className="mt-2 text-sm text-muted-foreground">{s.label}</p>
+              </FadeIn>
+            ))}
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section className="relative border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-24">
-          <SectionDots />
+        {/* ── TESTIMONIALS ───────────────────────────────────── */}
+        <section className="px-4 py-20 sm:px-6 sm:py-28">
           <div className="mx-auto max-w-5xl space-y-10">
             <FadeIn className="text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -332,22 +255,22 @@ export default async function LandingPage() {
             </FadeIn>
             <StaggerChildren className="grid gap-5 md:grid-cols-3">
               {TESTIMONIALS.map((t) => (
-                <StaggerItem key={t.name}>
+                <StaggerItem key={t.name} className="h-full">
                   <Card className="h-full border-border/60">
-                    <CardContent className="space-y-4 p-6">
+                    <CardContent className="flex h-full flex-col gap-4 p-6">
                       <Quote className="size-5 text-primary/40" />
-                      <p className="text-sm leading-relaxed text-foreground">{t.quote}</p>
+                      <p className="flex-1 text-sm leading-relaxed text-foreground">{t.quote}</p>
                       <div className="flex items-center gap-3 pt-2">
                         <Avatar seed={t.seed} size={36} />
                         <div>
                           <p className="text-sm font-medium text-foreground">{t.name}</p>
                           <p className="text-xs text-muted-foreground">{t.role}</p>
                         </div>
-                      </div>
-                      <div className="flex gap-0.5">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="size-3.5 fill-warning text-warning" />
-                        ))}
+                        <div className="ml-auto flex gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="size-3.5 fill-warning text-warning" />
+                          ))}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -357,11 +280,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* FAQ */}
-        <section
-          id="faq"
-          className="border-t border-border/40 px-4 py-20 sm:px-6 sm:py-24"
-        >
+        {/* ── FAQ ────────────────────────────────────────────── */}
+        <section id="faq" className="scroll-mt-20 border-t border-border/40 bg-card/40 px-4 py-20 sm:px-6 sm:py-28">
           <div className="mx-auto max-w-3xl space-y-8">
             <FadeIn className="text-center">
               <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
@@ -382,9 +302,7 @@ export default async function LandingPage() {
                           +
                         </span>
                       </summary>
-                      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                        {f.a}
-                      </p>
+                      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
                     </details>
                   </StaggerItem>
                 ))}
@@ -393,8 +311,8 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        {/* FINAL CTA */}
-        <section className="relative px-4 py-20 sm:px-6 sm:py-24">
+        {/* ── FINAL CTA ──────────────────────────────────────── */}
+        <section className="relative px-4 py-20 sm:px-6 sm:py-28">
           <SectionDots />
           <FadeIn>
             <div className="relative mx-auto max-w-3xl overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/12 via-card to-info/6 px-6 py-12 text-center shadow-[0_1px_3px_0_rgb(0_0_0_/_0.03),0_20px_60px_-20px_rgb(0_0_0_/_0.12)] sm:px-10 sm:py-16">
@@ -410,7 +328,7 @@ export default async function LandingPage() {
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 {signedIn
-                  ? "Pick up where you left off — today's plan, your check-ins, and the coach are all one click away."
+                  ? "Pick up where you left off — today's plan, your check-ins, your money, and the coach are all one click away."
                   : "Two minutes to set up tonight. The rest of the week takes care of itself."}
               </p>
               <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center">
@@ -440,13 +358,14 @@ export default async function LandingPage() {
         </section>
       </main>
 
+      {/* ── FOOTER ─────────────────────────────────────────── */}
       <footer className="border-t border-border/40 bg-card/40">
         <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-3">
               <LogoWithWordmark />
               <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
-                A calm daily-life coaching companion. Coaching, not therapy or medical
+                A calm daily companion for life and money. Coaching, not therapy or medical
                 advice.
               </p>
             </div>
@@ -463,7 +382,6 @@ export default async function LandingPage() {
               title="Resources"
               items={[
                 { label: "How it works", href: "#how" },
-                { label: "Why PlainTheory", href: "#compare" },
                 { label: "FAQ", href: "#faq" },
                 { label: "Terms", href: "/terms" },
                 { label: "Privacy", href: "/privacy" },
@@ -494,22 +412,22 @@ export default async function LandingPage() {
 
 const STEPS = [
   {
-    n: "01",
+    n: "1",
     title: "Tell us what matters",
     description:
       "2 minutes — focus areas, goals, daily rhythm, body metrics, dietary notes.",
   },
   {
-    n: "02",
+    n: "2",
     title: "Wake to a plan",
     description:
       "Three focus tasks, hydration and mood widgets, a gentle nudge — tailored to you.",
   },
   {
-    n: "03",
+    n: "3",
     title: "Log the small stuff",
     description:
-      "Mood, water, sleep, weight, focus — ten seconds each. Patterns emerge in a week.",
+      "Mood, water, sleep, money — ten seconds each. Patterns emerge in a week.",
   },
 ];
 
@@ -522,15 +440,10 @@ const TRACKABLES = [
   { icon: <Scale className="size-6" />, label: "Weight", unit: "kg" },
   { icon: <Leaf className="size-6" />, label: "Relax", unit: "1–5 scale" },
   { icon: <Sun className="size-6" />, label: "Ate well", unit: "1–5 scale" },
+  { icon: <Wallet className="size-6" />, label: "Money", unit: "in / out" },
 ];
 
 const FEATURES = [
-  {
-    icon: <Sun className="size-5" />,
-    title: "A morning plan that fits",
-    description:
-      "Three focus tasks tied to the areas you care about, your goals, your rhythm, and your body.",
-  },
   {
     icon: <MessageCircle className="size-5" />,
     title: "A coach who knows you",
@@ -539,21 +452,27 @@ const FEATURES = [
   },
   {
     icon: <NotebookPen className="size-5" />,
-    title: "Eight quick check-ins",
+    title: "Quick daily check-ins",
     description:
       "Mood, energy, focus, sleep, water, weight, relax, ate well — ten seconds each.",
   },
   {
-    icon: <Repeat className="size-5" />,
-    title: "Achievements and streaks",
-    description:
-      "Earn calm badges. See streaks. Notice when you slip — without guilt.",
-  },
-  {
-    icon: <Compass className="size-5" />,
+    icon: <BarChart3 className="size-5" />,
     title: "Weekly insights with charts",
     description:
       "KPIs, line + bar charts, and three patterns we noticed across your week.",
+  },
+  {
+    icon: <Repeat className="size-5" />,
+    title: "Habits & streaks",
+    description:
+      "Build small repeatable actions. Earn calm badges. Notice slips without guilt.",
+  },
+  {
+    icon: <Compass className="size-5" />,
+    title: "Goals that stay in view",
+    description:
+      "Keep what you're working toward front and center — every plan ties back to it.",
   },
   {
     icon: <Leaf className="size-5" />,
@@ -562,14 +481,10 @@ const FEATURES = [
   },
 ];
 
-const COMPARE: { label: string; paper: string; planner: string }[] = [
-  { label: "Personalized to your goals", paper: "—", planner: "Templates" },
-  { label: "Tracks mood, water, sleep, weight", paper: "—", planner: "Some" },
-  { label: "AI coach that remembers you", paper: "—", planner: "—" },
-  { label: "Weekly review with charts", paper: "Manual", planner: "Manual" },
-  { label: "Apple-style achievement badges", paper: "—", planner: "—" },
-  { label: "Encrypted + export your data", paper: "—", planner: "Varies" },
-  { label: "10-second check-ins", paper: "—", planner: "Slow" },
+const STATS = [
+  { to: 10, suffix: "s", label: "to log a daily check-in" },
+  { to: 9, suffix: "", label: "signals you can track" },
+  { to: 3, suffix: "", label: "focus tasks each morning" },
 ];
 
 const TESTIMONIALS = [
@@ -592,18 +507,18 @@ const TESTIMONIALS = [
     role: "Engineer · 41",
     seed: "marcus-testimonial",
     quote:
-      "The weekly review is the killer feature. Real patterns I didn't notice — like my focus crashes when I skip breakfast. Small fix.",
+      "Logging spending next to my mood was the unlock. I can finally see how money stress and bad sleep feed each other.",
   },
 ];
 
 const FAQS = [
   {
     q: "Is this therapy or medical advice?",
-    a: "No. PlainTheory is general life coaching — daily routines, food, focus, sleep, mood patterns. For anything clinical, talk to a qualified professional.",
+    a: "No. PlainTheory is general life coaching — daily routines, food, focus, sleep, mood patterns, and money tracking. For anything clinical, talk to a qualified professional.",
   },
   {
     q: "Can I use it for free?",
-    a: "Yes. Free covers a daily plan, eight check-in types, water + weight tracking, and five chat messages a day. Plus and Premium unlock more.",
+    a: "Yes. Free covers a daily plan, eight check-in types, water + weight tracking, money tracking, and five chat messages a day. Plus and Premium unlock more.",
   },
   {
     q: "Does the AI remember me between sessions?",
@@ -616,10 +531,6 @@ const FAQS = [
   {
     q: "Where does my data live?",
     a: "Encrypted in DynamoDB in us-east-2 with customer-managed KMS keys. Export to JSON or delete your account anytime from Settings.",
-  },
-  {
-    q: "How are the badges earned?",
-    a: "Hexagonal, Apple-style. First check-in, 3-day streak, 7-day streak, 30-day consistency, first complete plan, five complete days, 50 check-ins. More coming.",
   },
 ];
 

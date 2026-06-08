@@ -4,7 +4,6 @@ import {
   createThread,
   listMessages,
   listRecentUserMessages,
-  setMessageEmbedding,
   type ChatMessage,
 } from "@/lib/db/chat";
 import { listSymptomLogs, type SymptomLog } from "@/lib/db/symptoms";

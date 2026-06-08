@@ -188,7 +188,7 @@ export function WellnessSummary({ stats }: { stats: WellnessStats }) {
           </View>
         </View>
 
-        <Text style={styles.sectionHeader}>How you've felt</Text>
+        <Text style={styles.sectionHeader}>{"How you've felt"}</Text>
         <View style={styles.card}>
           <View style={styles.rowBetween}>
             <Text>Mood (avg)</Text>

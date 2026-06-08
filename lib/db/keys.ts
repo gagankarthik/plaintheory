@@ -62,6 +62,13 @@ export const auditKey = (userId: string, timestamp: string, entryId: string) => 
 
 export const auditPrefix = "AUDIT#";
 
+export const financeKey = (userId: string, createdAt: string, entryId: string) => ({
+  PK: userPK(userId),
+  SK: `FINANCE#${createdAt}#${entryId}`,
+});
+
+export const financePrefix = "FINANCE#";
+
 export const usageKey = (userId: string, date: string) => ({
   PK: userPK(userId),
   SK: `USAGE#${date}`,

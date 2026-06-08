@@ -7,6 +7,7 @@ import {
   NotebookPen,
   Repeat,
   Sunrise,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -450,6 +451,27 @@ export default async function AppHome() {
               <p className="mt-3 inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary transition-transform group-hover:translate-x-0.5">
                 New log <ArrowRight className="size-2.5" />
               </p>
+            </div>
+          </Link>
+
+          {/* FINANCE — entry point to the personal finance dashboard */}
+          <Link href="/app/finance" className="group col-span-2 block lg:col-span-4">
+            <div className="relative flex items-center gap-4 overflow-hidden rounded-3xl border border-info/20 bg-gradient-to-br from-info/10 via-info/3 to-transparent p-4 transition-all hover:border-info/40 hover:shadow-[0_8px_24px_-12px_rgb(0_0_0_/_0.08)] sm:p-5">
+              <span className="inline-flex size-11 shrink-0 items-center justify-center rounded-2xl bg-info/15 text-info">
+                <Wallet className="size-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                  Finance
+                </p>
+                <p className="font-serif text-xl tracking-tight text-foreground sm:text-2xl">
+                  Track money & spending
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Log earnings, expenses, and savings — see the full breakdown.
+                </p>
+              </div>
+              <ArrowRight className="size-4 shrink-0 text-info transition-transform group-hover:translate-x-0.5" />
             </div>
           </Link>
 
